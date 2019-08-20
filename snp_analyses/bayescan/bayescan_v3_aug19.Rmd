@@ -1,0 +1,147 @@
+---
+title: "bayescan_v3"
+author: "Hannah Reich"
+date: "Aug 20, 2019"
+output: html_document
+---
+
+```{r}
+# aug 20 2019
+# this is identicle to the feb 2019 analyses but removes a small subset of contaminated snps
+# this is the third pass at the bayescan analysis
+# this analysis way run on the server in november 2018 with the updated mm80 set of snps
+
+library(boa)
+library(dplyr)
+
+# set the working directory
+setwd("~/Desktop/PhD/Symbiodinium fitti/SNP_under_selection/v_contam_rm_08082019//")
+
+# load the bayescan script that comes with the package
+source("~/Desktop/PhD/Symbiodinium fitti/SNP_under_selection/v1_oct18/plot_R.r")
+
+############################################################
+##### THIS VERSION ACCOUNTS FOR HOST IDENTITY IN POPULATION INFORMATION
+############################################################
+host <- plot_bayescan("host_aug19_fst.txt", 1, FDR=0.05)
+summary(host)
+
+# write a table to play with data later
+# make this data have all of the STATS
+h <- read.table("host_aug19_fst.txt")
+h$ID <- seq.int(nrow(h))
+colnames(h) <- c("BAYES_prob", "BAYES_log10.PO.", "BAYES_qval", "BAYES_alpha", "BAYES_fst", "ID")
+
+# make host outlier dataframe
+hout <- as.data.frame(host$outliers)
+colnames(hout) <- c("ID")
+
+hostouts <- semi_join(h, hout, by = "ID", copy = FALSE)
+
+sel <- read.table("host_aug19.sel", colClasses = "numeric")
+parameter="Fst1"
+plot(density(sel[[parameter]]), xlab=parameter, main=paste(parameter, "posterior distribution host identity"))
+boa.hpd(sel[[parameter]], 0.05)
+
+# write file of all stats
+write.table(h, "host_bayes_statsALL.txt", sep="\t")
+
+############################################################
+##### THIS VERSION ACCOUNTS FOR LOCATION IN POPULATION INFORMATION
+############################################################
+loc <- plot_bayescan("loc_aug19_fst.txt", 1, FDR=0.05)
+summary(loc)
+
+# write a table to play with data later
+# make this data have all of the STATS
+l <- read.table("loc_aug19_fst.txt")
+l$ID <- seq.int(nrow(l))
+colnames(l) <- c("BAYES_prob", "BAYES_log10.PO.", "BAYES_qval", "BAYES_alpha", "BAYES_fst", "ID")
+
+# make host outlier dataframe
+lout <- as.data.frame(loc$outliers)
+colnames(lout) <- c("ID")
+
+locouts <- semi_join(l, lout, by = "ID", copy = FALSE)
+
+# write file of all stats
+write.table(l, "loc_bayes_statsALL.txt", sep="\t")
+
+sel <- read.table("loc_aug19.sel", colClasses = "numeric")
+parameter="Fst1"
+plot(density(sel[[parameter]]), xlab=parameter, main=paste(parameter, "posterior distribution - location"))
+boa.hpd(sel[[parameter]], 0.05)
+
+############################################################
+##### THIS VERSION ACCOUNTS FOR HOST AND LOCATION IN POPULATION INFORMATION
+############################################################
+Hloc <- plot_bayescan("hostXloc_aug19_fst.txt", 1, FDR=0.05)
+summary(Hloc)
+
+# write a table to play with data later
+# make this data have all of the STATS
+HL <- read.table("hostXloc_aug19_fst.txt")
+HL$ID <- seq.int(nrow(HL))
+colnames(HL) <- c("BAYES_prob", "BAYES_log10.PO.", "BAYES_qval", "BAYES_alpha", "BAYES_fst", "ID")
+
+# make host outlier dataframe
+HLout <- as.data.frame(Hloc$outliers)
+colnames(HLout) <- c("ID")
+
+HLocouts <- semi_join(HL, HLout, by = "ID", copy = FALSE)
+
+# write file of all stats
+write.table(HL, "hostXloc_bayes_statsALL.txt", sep="\t")
+
+sel <- read.table("hostXloc_aug19.sel", colClasses = "numeric")
+parameter="Fst1"
+plot(density(sel[[parameter]]), xlab=parameter, main=paste(parameter, "posterior distribution - host x loc"))
+boa.hpd(sel[[parameter]], 0.05)
+
+###################
+###########
+# see if there's overlap between the different bayescan runs
+
+hxlhost <- merge(HLocouts, hostouts, by = "ID")
+# label them as host_and_hostXloc
+hxlhost["version_BAYES"] <- "host_and_hostXloc"
+
+hxlloc <- merge(HLocouts, locouts, by = "ID")
+# label them as loc_and_hostXloc
+hxlloc["version_BAYES"] <- "loc_and_hostXloc"
+
+# rbind the overlap for both versions
+overlap <- rbind(hxlhost, hxlloc)
+count(overlap)
+
+### find the excluded ones
+# did this by subsetting ID. resource: https://stackoverflow.com/questions/5812478/how-i-can-select-rows-from-a-dataframe-that-do-not-match
+locsub <- subset(locouts, !(locouts$ID %in% HLocouts$ID))
+# count to check
+count(locsub)
+
+hostsub <- subset(hostouts, !(hostouts$ID %in% HLocouts$ID))
+#count to check
+count(hostsub)
+
+## combine host and loc outlier tables 
+# first add host/loc column to dataframes
+locsub["version_BAYES"] <- "location"
+hostsub["version_BAYES"] <- "host"
+
+# concatenate subsets using rbind
+sub <- rbind(locsub, hostsub)
+
+### concatenate the overlaps and subsetted samples
+# make them into dataframes first
+# the bind_rows() / dplyr function is a lifesaver!!!
+sub <- as.data.frame(sub)
+overlap <- as.data.frame(overlap)
+all <- bind_rows(sub, overlap)
+count(all)
+
+# write out the data
+write.table(all, "alloutlier_BAYESCAN_stats.txt", sep = "\t")
+
+```
+
