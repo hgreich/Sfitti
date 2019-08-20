@@ -1,0 +1,139 @@
+---
+title: "filemerge_v3"
+author: "Hannah Reich"
+date: "August 20, 2019"
+output: html_document
+---
+
+```{r}
+####
+# this script was updated again on aug 20 2019 after removing a small subset of contaminated snps.
+# this script was updated on halloween 2018 for the mm80 redo
+# script first started on October 11 2018
+# updated feb 22 2019 with processed bayescan results
+# this script is for merging the snps under selection file to the vcf file and to the annotations file
+
+# set the working directory
+setwd("~/Desktop/PhD/Symbiodinium fitti/SNP_under_selection/v_contam_rm_08082019//")
+
+library(dplyr)
+
+# load the data with SNP ID and selection stats
+sp <- read.table("outliersONLY_PCADAPT.txt")
+sb <- read.table("alloutlier_BAYESCAN_stats.txt")
+
+# find outlier overlap with bayescan data
+# > merge(a,b, by.x = "c1", by.y = "a")
+overlap <- merge(sp, sb, by = "ID")
+
+### save the overlap table!!!
+write.table(overlap, "snp_under_sel_methods_OVERLAP.txt", sep = "\t")
+
+# load the tab table of the VCF
+# vcf to tab notes:
+  # do this on server
+  #1 export PERL5LIB=/gpfs/group/ibb3/default/tools/vcftools-vcftools-ea875e2/src/perl/
+  # 2 /gpfs/group/ibb3/default/tools/vcftools-vcftools-ea875e2/src/perl/vcf-to-tab <  hq_nocontam_rename_aug19.vcf > rename.tab
+  # remove the / from the file
+  # sed 's/[/]//g' rename.tab > rename_clean.tab
+snps <- read.table("~/Desktop/PhD/Symbiodinium fitti/SNP_under_selection/v_contam_rm_08082019/rename_clean.tab", header = T)
+# add an "ID" column to the vcf 
+snps$ID <- seq.int(nrow(snps))
+
+# merge the snps and selection stats by "ID"
+# this is for pcadapt
+snp_p <- merge(snps, sp, by = "ID")
+count(snp_p) # this is the number of PCAdapt snps under selection (4,987 out of 58,537)
+
+# this is for bayescan
+snp_b <- merge(snps, sb, by = "ID")
+count(snp_b) # this is the number of bayescan snps under selection (370 out of 58,537)
+
+# this is for overlap between pcadapt and bayescan
+snp_o <- merge(snps, overlap, by = "ID")
+count(snp_o) # this is the number of overlap between bayescan & PCAdapt snps under selection (307 out of 58,537)
+
+####### pairing vcf file with annotation file#
+# downloaded sfitti_genes.bed file from augustus folder in server
+# deleted useless columns in excel
+
+# create file that combines bed file info (scaffold, start, stop, and protein ID) with protein ID from annotation file
+annotation <- read.csv("~/Desktop/PhD/Symbiodinium fitti/blast reports/combinedblast04112018.csv", header = T)
+genebed <- read.table("~/Desktop/PhD/Symbiodinium fitti/blast reports/sfitti_genes.bed", header = T)
+genecov <- read.table("~/Desktop/PhD/Symbiodinium fitti/blast reports/sfitti_cov_by_gene.txt", header = T)
+
+info <- merge(annotation, genebed, by = "Protein_ID")
+
+# first merge all annotation info and snps under sel by site/ chrom for pcadapt, bayescan, and overlap
+bysite_p <- merge(info, snp_p, by.x = "site", by.y = "CHROM")
+bysite_b <- merge(info, snp_b, by.x = "site", by.y = "CHROM")
+bysite_o <- merge(info, snp_o, by.x = "site", by.y = "CHROM")
+
+# get the counts
+count(bysite_p)
+count(bysite_b)
+count(bysite_o)
+
+# make the dataframe
+bysite_b <- as.data.frame(bysite_b)
+bysite_p <- as.data.frame(bysite_p)
+bysite_o <- as.data.frame(bysite_o)
+
+# find the markers where start < position < stop
+# for bayescan, pcadapt, and overlap
+
+markers_p <- subset(bysite_p, POS>start & POS<stop)
+count(markers_p)
+### 899/4,987 pcadapt snps under selection are in coding regions
+
+markers_b <- subset(bysite_b, POS>start & POS<stop)
+count(markers_b)
+### 17/370 bayescan snps under selection are in coding regions
+
+markers_o <- subset(bysite_o, POS>start & POS<stop)
+count(markers_o)
+### 12/307 overlap snps under selection are in coding regions
+
+# pair in the coverage data
+#cov<- merge(markers, genecov, by = "Protein_ID")
+#write.table(cov, "coverage_annotation_selectionSNPs.txt")
+
+### find the number of mm80 snps in coding regions
+
+# first merge all annotation info and snps under sel by site/ chrom
+bysite2 <- merge(info, snps, by.x = "site", by.y = "CHROM")
+count(bysite2)
+bysite <- as.data.frame(bysite2)
+
+# find the markers where start < position < stop
+all <- subset(bysite2, POS>start & POS<stop)
+count(all)
+# 12,780 mm80 (no contam) snps in coding region
+
+
+```
+
+```{r eval=FALSE, include=FALSE}
+#old
+
+# attempt to create a bed file for subsetting the vcf
+a <- c(snp_under_sel$CHROM, snp_under_sel$POS)
+
+# create the data frame
+#aa <- data.frame(CHROM = snp_under_sel$CHROM, POS = snp_under_sel$POS)
+# create a dataframe that subtracts 1
+#m1 <- (aa$POS - 1)
+#m1 <- as.data.frame(m1)
+# create a dataframe that adds 1
+#p1 <- (aa$POS + 1)
+#p1 <- as.data.frame(p1)
+
+# create a dataframe for the site
+#site <- as.data.frame(aa$CHROM)
+
+# add the chrom label, and position -/+ 1 to create a bed file
+#bed <- cbind(site, m1, p1)
+# save the bed file for later
+#write.table(bed, "snpunderSEL_mm80.bed", sep = "\t")
+```
+
