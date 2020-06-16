@@ -1,0 +1,40 @@
+---
+title: "combineblast"
+author: "Hannah Reich"
+date: "April 12, 2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+
+library(dplyr)
+library(scales)
+
+setwd("~/Desktop/PhD/Symbiodinium fitti/blast reports/")
+
+sp = read.table('besthits_uniprot_sfitti', header=FALSE, sep = "\t",quote = "")
+tmbl= read.table('besthits_trembl_sfitti', header=FALSE, sep = "\t", quote = "")
+ncbi = read.table('besthits_ncbi_sfitti', header=FALSE, sep = "\t", quote = "")
+prot = read.table ('names2.txt')
+# go = read.table('Sfitti_uniprotGO.txt', header=FALSE, sep = "\t",quote = "")
+b<-prot %>%
+  left_join(
+    sp %>% # join with the second file (only the first and third column)
+      select(V1, V2, V11, V13), 
+    by='V1') %>%     
+  left_join(
+    tmbl %>% 
+      select(V1, V2, V11, V13), 
+    by='V1') %>%
+  left_join(
+    ncbi %>% 
+      select(V1, V2, V11, V13), 
+    by='V1')  
+
+colnames(b)<-c("Protein_ID","Swiss-Prot_Hit","SP_E-value","Swiss-Prot_Description","Trembl_Hit", "TB_E-value", "Trembl_Description", 
+               "NCBI_hit", "nr_E-value","NCBI_Description")
+head(b)
+
+write.csv(b,"combinedblast04112018.csv")
+
+```
