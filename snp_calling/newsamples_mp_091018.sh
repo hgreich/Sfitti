@@ -43,15 +43,22 @@ cd $LINE
     cd ../
 done
 
-# call SNPs using mpileup
-~/ibb3_group/default/tools/samtools mpileup -ugAEf $REF -t AD,DP /gpfs/group/ibb3/default/shallow_genome_SNP_data/newHybrids_180702/18068-01/13704/nodupssym.bam /gpfs/group/ibb3/default/shallow_genome_SNP_data/newHybrids_180702/18068-01/13706/nodupssym.bam /gpfs/group/ibb3/default/shallow_genome_SNP_data/newHybrids_180702/18068-01/13736/nodupssym.bam /gpfs/group/ibb3/default/shallow_genome_SNP_data/newHybrids_180702/18068-01/13762/nodupssym.bam /gpfs/group/ibb3/default/shallow_genome_SNP_data/newHybrids_180702/18068-01/13782/nodupssym.bam /gpfs/group/ibb3/default/shallow_genome_SNP_data/newHybrids_180702/18068-01/13821/nodupssym.bam /gpfs/group/ibb3/default/shallow_genome_SNP_data/newHybrids_180702/18068-01/13823/nodupssym.bam /gpfs/group/ibb3/default/shallow_genome_SNP_data/newHybrids_180702/18068-01/13833/nodupssym.bam /gpfs/group/ibb3/default/shallow_genome_SNP_data/newHybrids_180702/18068-01/14472/nodupssym.bam > ALLsympileup.bcf
-
+# make sure to include sept 2018 new samples, deep apalm bam, and allbam
+~/ibb3_group/default/tools/samtools mpileup -ugAEf $REF -t AD,DP /gpfs/group/ibb3/default/shallow_genome_SNP_data/newHybrids_180702/18068-01/13704/nodupssym.bam /gpfs/group/ibb3/default/shallow_genome_SNP_data/newHybrids_180702/18068-01/13706/nodupssym.bam /gpfs/group/ibb3/default/shallow_genome_SNP_data/newHybrids_180702/18068-01/13736/nodupssym.bam /gpfs/group/ibb3/default/shallow_genome_SNP_data/newHybrids_180702/18068-01/13762/nodupssym.bam /gpfs/group/ibb3/default/shallow_genome_SNP_data/newHybrids_180702/18068-01/13782/nodupssym.bam /gpfs/group/ibb3/default/shallow_genome_SNP_data/newHybrids_180702/18068-01/13821/nodupssym.bam /gpfs/group/ibb3/default/shallow_genome_SNP_data/newHybrids_180702/18068-01/13823/nodupssym.bam /gpfs/group/ibb3/default/shallow_genome_SNP_data/newHybrids_180702/18068-01/13833/nodupssym.bam /gpfs/group/ibb3/default/shallow_genome_SNP_data/newHybrids_180702/18068-01/14472/nodupssym.bam /gpfs/group/ibb3/default/genome_resources/Symbiodinium/S.fitti/allbam01182018.bam /gpfs/group/ibb3/default/AP_AC_genome_seqs/Illumina/Apalm/rawReads/sym_nodups.bam > ALLsympileup.bcf
 
 # call variants
 ~/ibb3_group/default/tools/bcftools call -f GQ -vmO z --ploidy 1 -o ALLsympileup.vcf.gz ALLsympileup.bcf
+gunzip ALLsympileup.vcf.gz
 
-# copy to fitti filder
-cp ALLsympileup.vcf.gz /storage/home/hgr5/ibb3_group/default/genome_resources/Symbiodinium/S.fitti/
+# remove samples with multiple infections
+export PERL5LIB=/storage/home/hgr5/vcftools_0.1.13/lib/perl5/site_perl/
+/storage/home/hgr5/vcftools_0.1.13/bin/vcftools --remove /storage/home/hgr5/ibb3_group/default/genome_resources/Symbiodinium/S.fitti/snpstuff_02272018/single_infect_SNPs/remove --vcf ALLsympileup.vcf --recode --out ALLsymSINGLEmp.vcf
+ mv ALLsymSINGLEmp.vcf.recode.vcf ALLsymSINGLEmp.vcf
+
+#########
+######### separate snps and indels
+# separate out SNPs
+/gpfs/group/ibb3/default/tools/bcftools view -O v --threads 8 -m2 -M2 -v snps -o snpALLsymSINGLE.vcf ALLsymSINGLEmp.vcf
 
 echo meow
 
