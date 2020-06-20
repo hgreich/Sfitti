@@ -7,8 +7,5 @@ scripts for annotation and analysis of the draft Sfitti genome assembley
 ### snp_calling
 scripts used to call and filter SNPs (how we arrived at the "high quality" and "conservative" VCFs)
 
-### contam_rm
-removal of (host acropora) contaminated scaffolds from VCFs 
-
 ### snp_analyses
 scripts for popgen stats & analyses
