@@ -11,7 +11,7 @@
 ###########
 # updated 08/08/2019, script created sept 28 2018
 ### run vcf stats on the new SNP analysis with all of the samples
-# these samples are HQ (qual over 200 and mm90) and were subsetted to match the spring 2018 genotyping set of snps that were called with both snp callers. Coral contam scaffolds removed
+# these samples are HQ (qual over 200 and mm80) and were subsetted to match the spring 2018 genotyping set of snps that were called with both snp callers. Coral contam scaffolds removed
 
 
 ###########
