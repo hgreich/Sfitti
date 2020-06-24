@@ -10,6 +10,9 @@ output: html_document
 # updated structure plots from updated structure results
 # 58k no contam snps
 
+### calls upon plotstr.R 
+# original script https://github.com/DrewWham/Genetic-Structure-Tools
+
 # set the working directory
 setwd("~/Desktop/PhD/Symbiodinium fitti/structure/dec2019/")
 
