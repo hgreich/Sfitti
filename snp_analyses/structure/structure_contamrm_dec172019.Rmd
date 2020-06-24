@@ -1,0 +1,62 @@
+---
+title: "structure_contamrm_dec172019"
+author: "Hannah Reich"
+date: "12/17/2019"
+output: html_document
+---
+
+```{r}
+# dec 17 2019
+# updated structure plots from updated structure results
+# 58k no contam snps
+
+# set the working directory
+setwd("~/Desktop/PhD/Symbiodinium fitti/structure/dec2019/")
+
+# load the packages
+library(ggplot2)
+library(stringr)
+library(readxl)
+library(reshape2)
+library(cowplot)
+library(data.table)
+
+# add in the plotSTR.r
+# got it on Drew's website http://www.thecoalescent.com/plotstr/
+source("~/Desktop/PhD/Symbiodinium fitti/structure/dec2019/plotSTR.r")
+#infile <- read.table("~/Desktop/PhD/Symbiodinium fitti/structure/sfitti/v1/Results/project_data_v2")
+
+# watch out for the sampleID names, if they are too long they'll get messed up in the qs<-data.frame(qs) (line 20) part of the function
+# NEEDED TO COMMENT OUT LINE 48
+# convert the structure outfile into a clean .csv file
+theme_update(plot.title = element_text(hjust = 0.5))
+
+# according to structure harvester, k=3 is the best
+# according to distruct, no visible difference in the various k=3 runs, so picked select jobs to better visualize for presentation figure
+# raw output is on external hard drive. using the following jobs (T8, k=2), (T25 and T38, k=3), (T76, k=5), (T110, k=7), (T150, k=9)
+
+### K=2
+read.STR("~/Desktop/PhD/Symbiodinium fitti/structure/dec2019/aug19_str_infile.txt","~/Desktop/PhD/Symbiodinium fitti/structure/dec2019/results_job_T8_f")
+plotSTR("~/Desktop/PhD/Symbiodinium fitti/structure/dec2019/k2_edit.csv")
+
+### K=3
+read.STR("~/Desktop/PhD/Symbiodinium fitti/structure/dec2019/aug19_str_infile.txt","~/Desktop/PhD/Symbiodinium fitti/structure/dec2019/results_job_T25_f")
+plotSTR("~/Desktop/PhD/Symbiodinium fitti/structure/dec2019/k3_edit.csv")
+
+read.STR("~/Desktop/PhD/Symbiodinium fitti/structure/dec2019/aug19_str_infile.txt","~/Desktop/PhD/Symbiodinium fitti/structure/dec2019/results_job_T38_f")
+plotSTR("~/Desktop/PhD/Symbiodinium fitti/structure/dec2019/k3_v2_edit.csv")
+
+### K=5
+read.STR("~/Desktop/PhD/Symbiodinium fitti/structure/dec2019/aug19_str_infile.txt","~/Desktop/PhD/Symbiodinium fitti/structure/dec2019/results_job_T76_f")
+plotSTR("~/Desktop/PhD/Symbiodinium fitti/structure/dec2019/k5_edit.csv")
+
+### K=7
+read.STR("~/Desktop/PhD/Symbiodinium fitti/structure/dec2019/aug19_str_infile.txt","~/Desktop/PhD/Symbiodinium fitti/structure/dec2019/results_job_T110_f")
+plotSTR("~/Desktop/PhD/Symbiodinium fitti/structure/dec2019/k7_edit.csv")
+
+### K=9
+read.STR("~/Desktop/PhD/Symbiodinium fitti/structure/dec2019/aug19_str_infile.txt","~/Desktop/PhD/Symbiodinium fitti/structure/dec2019/results_job_T150_f")
+plotSTR("~/Desktop/PhD/Symbiodinium fitti/structure/dec2019/k9_edit.csv")
+
+```
+
