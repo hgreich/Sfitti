@@ -1,0 +1,1 @@
+ --msa /scratch/cluster/weekly/raxml/job_27217/sequenceAlignment.fa --model GTR+FO+G  --opt-branches on --opt-model on --tree pars{50},rand{50} --all  --bs-trees 100 --force --threads 2 --prefix /scratch/cluster/weekly/raxml/job_27217/result

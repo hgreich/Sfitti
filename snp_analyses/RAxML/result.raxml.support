@@ -1,0 +1,150 @@
+#NEXUS
+begin taxa;
+	dimensions ntax=48;
+	taxlabels
+	BP_BA_1667[&!color=#000000]
+	BP_VI_1839
+	C_BE_13792
+	C_BE_13797
+	C_BE_13827
+	C_BE_13837
+	C_BE_8867
+	C_CU_13901
+	C_CU_13903
+	C_CU_13905
+	C_CU_13925
+	C_FL_4923
+	C_FL_4927
+	C_FL_4959
+	C_FL_4960
+	C_VI_13696
+	C_VI_13712
+	C_VI_13714
+	C_VI_13758
+	H_BE_13778
+	H_BE_13782
+	H_BE_13807
+	H_BE_13821
+	H_BE_13823
+	H_BE_13833
+	H_BE_6779
+	H_CU_14472
+	H_FL_1302
+	H_VI_13704
+	H_VI_13706
+	H_VI_13736
+	H_VI_13762
+	H_VI_13764
+	H_VI_1834
+	H_VI_1835
+	H_VI_1837
+	P_BE_13819[&!color=#000000]
+	P_BE_5993[&!color=#000000]
+	P_CU_13919[&!color=#000000]
+	P_CU_13933[&!color=#000000]
+	P_CU_3070
+	P_CU_3071[&!color=#000000]
+	P_FL_1012
+	P_FL_1037[&!color=#000000]
+	P_FL_2655[&!color=#000000]
+	P_FL_2699[&!color=#000000]
+	P_FL_5524[&!color=#000000]
+	P_FL_6895[&!color=#000000]
+;
+end;
+
+begin trees;
+	tree tree_1 = [&R] ((C_BE_8867[&!rotate=false]:0.187834,C_CU_13905[&!rotate=false]:0.139547)[&label=7,!rotate=false]:0.026039,(((((((C_VI_13696[&!rotate=false]:0.13828,C_CU_13903[&!rotate=false]:0.147179)[&label=37,!rotate=false]:0.03279,((C_CU_13901[&!rotate=false]:0.141541,C_BE_13827[&!rotate=false]:0.151841)[&label=27,!rotate=false]:0.029774,(C_CU_13925[&!rotate=false]:0.140137,C_VI_13714[&!rotate=false]:0.136143)[&label=27,!rotate=false]:0.027403)[&label=17,!rotate=false]:0.014651)[&label=10,!rotate=false]:0.010286,(C_VI_13758[&!rotate=false]:0.137028,C_VI_13712[&!rotate=false]:0.135617)[&label=46,!rotate=false]:0.036428)[&label=6,!rotate=false]:0.009607,(((((((P_FL_2699[&!rotate=false]:0.132805,BP_BA_1667[&!rotate=false]:0.160507)[&label=42,!rotate=false]:0.034165,(P_CU_13933[&!rotate=false]:0.14691,(P_CU_13919[&!rotate=false]:0.153119,P_CU_3071[&!rotate=false]:0.136864)[&label=81,!rotate=false]:0.032563)[&label=60,!rotate=false]:0.020187)[&label=6,!rotate=false]:0.010435,(((P_FL_5524[&!rotate=false]:0.159698,P_FL_2655[&!rotate=false]:0.145129)[&label=41,!rotate=false]:0.033365,(P_FL_1037[&!rotate=false]:0.140581,P_FL_6895[&!rotate=false]:0.146099)[&label=44,!rotate=false]:0.033338)[&label=6,!rotate=false]:0.013505,(P_BE_5993[&!rotate=false]:0.153769,P_BE_13819[&!rotate=false]:0.139503)[&label=48,!rotate=false]:0.035025)[&label=3,!rotate=false]:0.009977)[&label=43,!rotate=false]:0.013585,((H_CU_14472[&!rotate=false]:0.043754,((((H_VI_13706[&!rotate=false]:0.06118,H_VI_13736[&!rotate=false]:0.043828)[&label=52,!rotate=false]:0.011925,(H_BE_13782[&!rotate=false]:0.036596,H_BE_13821[&!rotate=false]:0.04447)[&label=94,!rotate=false]:0.013327)[&label=16,!rotate=false]:0.004102,(H_BE_13823[&!rotate=false]:0.053282,H_VI_13704[&!rotate=false]:0.054775)[&label=75,!rotate=false]:0.017337)[&label=29,!rotate=false]:0.008318,(H_VI_13762[&!rotate=false]:0.044379,H_BE_13833[&!rotate=false]:0.047961)[&label=80,!rotate=false]:0.012745)[&label=55,!rotate=false]:0.011248)[&label=100,!rotate=false]:0.058011,(P_CU_3070[&!rotate=false]:0.224373,P_FL_1012[&!rotate=false]:0.039608)[&label=91,!rotate=false]:0.04216)[&label=60,!rotate=true]:0.017546)[&label=62,!rotate=false]:0.016401,((BP_VI_1839[&!rotate=false]:0.161492,H_VI_1834[&!rotate=false]:0.159029)[&label=65,!rotate=false]:0.034765,(H_VI_13764[&!rotate=false]:0.160179,H_VI_1835[&!rotate=false]:0.119066)[&label=100,!rotate=false]:0.043054)[&label=33,!rotate=false]:0.014603)[&label=31,!rotate=false]:0.01487,((H_BE_13807[&!rotate=false]:0.164504,H_BE_6779[&!rotate=false]:0.15366)[&label=61,!rotate=false]:0.029992,H_BE_13778[&!rotate=false]:0.181781)[&label=40,!rotate=false]:0.01441)[&label=21,!rotate=false]:0.012649,(H_VI_1837[&!rotate=false]:0.156104,H_FL_1302[&!rotate=false]:0.191724)[&label=38,!rotate=false]:0.032886)[&label=78,!rotate=false]:0.022828)[&label=6,!rotate=true]:0.007562,(C_FL_4960[&!rotate=false]:0.152006,C_FL_4927[&!rotate=false]:0.135153)[&label=31,!rotate=false]:0.035967)[&label=8,!rotate=false]:0.011671,(C_FL_4923[&!rotate=false]:0.146278,C_FL_4959[&!rotate=false]:0.136834)[&label=25,!rotate=false]:0.030607)[&label=4,!rotate=false]:0.011988,(C_BE_13797[&!rotate=false]:0.159217,C_BE_13792[&!rotate=false]:0.127438)[&label=66,!rotate=false]:0.044213)[&label=2,!rotate=false]:0.017336,C_BE_13837[&!rotate=true]:0.173006)[&label=7,!rotate=true];
+end;
+
+begin figtree;
+	set appearance.backgroundColorAttribute="Default";
+	set appearance.backgroundColour=#ffffff;
+	set appearance.branchColorAttribute="User selection";
+	set appearance.branchColorGradient=false;
+	set appearance.branchLineWidth=1.0;
+	set appearance.branchMinLineWidth=0.0;
+	set appearance.branchWidthAttribute="Fixed";
+	set appearance.foregroundColour=#000000;
+	set appearance.hilightingGradient=false;
+	set appearance.selectionColour=#2d3680;
+	set branchLabels.colorAttribute="User selection";
+	set branchLabels.displayAttribute="Branch times";
+	set branchLabels.fontName="sansserif";
+	set branchLabels.fontSize=8;
+	set branchLabels.fontStyle=0;
+	set branchLabels.isShown=false;
+	set branchLabels.significantDigits=4;
+	set layout.expansion=198;
+	set layout.layoutType="RECTILINEAR";
+	set layout.zoom=0;
+	set legend.attribute="label";
+	set legend.fontSize=10.0;
+	set legend.isShown=false;
+	set legend.significantDigits=4;
+	set nodeBars.barWidth=4.0;
+	set nodeBars.displayAttribute=null;
+	set nodeBars.isShown=false;
+	set nodeLabels.colorAttribute="User selection";
+	set nodeLabels.displayAttribute="label";
+	set nodeLabels.fontName="Arial";
+	set nodeLabels.fontSize=10;
+	set nodeLabels.fontStyle=0;
+	set nodeLabels.isShown=true;
+	set nodeLabels.significantDigits=4;
+	set nodeShapeExternal.colourAttribute="User selection";
+	set nodeShapeExternal.isShown=false;
+	set nodeShapeExternal.minSize=10.0;
+	set nodeShapeExternal.scaleType=Width;
+	set nodeShapeExternal.shapeType=Circle;
+	set nodeShapeExternal.size=4.0;
+	set nodeShapeExternal.sizeAttribute="Fixed";
+	set nodeShapeInternal.colourAttribute="User selection";
+	set nodeShapeInternal.isShown=false;
+	set nodeShapeInternal.minSize=10.0;
+	set nodeShapeInternal.scaleType=Width;
+	set nodeShapeInternal.shapeType=Circle;
+	set nodeShapeInternal.size=4.0;
+	set nodeShapeInternal.sizeAttribute="Fixed";
+	set polarLayout.alignTipLabels=false;
+	set polarLayout.angularRange=0;
+	set polarLayout.rootAngle=0;
+	set polarLayout.rootLength=100;
+	set polarLayout.showRoot=true;
+	set radialLayout.spread=0.0;
+	set rectilinearLayout.alignTipLabels=false;
+	set rectilinearLayout.curvature=0;
+	set rectilinearLayout.rootLength=100;
+	set scale.offsetAge=0.0;
+	set scale.rootAge=1.0;
+	set scale.scaleFactor=1.0;
+	set scale.scaleRoot=false;
+	set scaleAxis.automaticScale=true;
+	set scaleAxis.fontSize=8.0;
+	set scaleAxis.isShown=false;
+	set scaleAxis.lineWidth=1.0;
+	set scaleAxis.majorTicks=1.0;
+	set scaleAxis.minorTicks=0.5;
+	set scaleAxis.origin=0.0;
+	set scaleAxis.reverseAxis=false;
+	set scaleAxis.showGrid=true;
+	set scaleBar.automaticScale=true;
+	set scaleBar.fontSize=10.0;
+	set scaleBar.isShown=true;
+	set scaleBar.lineWidth=1.0;
+	set scaleBar.scaleRange=0.0;
+	set tipLabels.colorAttribute="User selection";
+	set tipLabels.displayAttribute="Names";
+	set tipLabels.fontName="Arial";
+	set tipLabels.fontSize=12;
+	set tipLabels.fontStyle=1;
+	set tipLabels.isShown=true;
+	set tipLabels.significantDigits=4;
+	set trees.order=false;
+	set trees.orderType="increasing";
+	set trees.rooting=true;
+	set trees.rootingType="User Selection";
+	set trees.transform=false;
+	set trees.transformType="cladogram";
+end;
+
