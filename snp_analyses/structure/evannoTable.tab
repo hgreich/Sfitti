@@ -1,0 +1,18 @@
+# This document produced by the Structure Harvester,
+# http://taylor0.biology.ucla.edu/structureHarvester
+# Written by Dent Earl, dearl (a) soe ucsc edu.
+# CITATION:
+# Earl, Dent A. and vonHoldt, Bridgett M. (2012)
+# STRUCTURE HARVESTER: a website and program for visualizing 
+# STRUCTURE output and implementing the Evanno method. 
+# Conservation Genetics Resources vol. 4 (2) pp. 359-361 doi: 10.1007/s12686-011-9548-7
+# Core version: vA.2 July 2014
+# Plot version: vA.1 November 2012
+# Web version: v0.6.94 July 2014
+# File generated at 2019-Mar-23 15:01:06 PDT
+# K	Reps	Mean LnP(K)	Stdev LnP(K)	Ln'(K)	|Ln''(K)|	Delta K
+##########
+2	8	-1052898.9500	795.5573	NA	NA	NA
+3	10	-1229627.0200	208183.8364	-176728.070000	1813047.510000	8.708877
+4	10	-3219402.6000	1108047.4413	-1989775.580000	1679233.930000	1.515489
+5	10	-3529944.2500	1170802.7220	-310541.650000	NA	NA
