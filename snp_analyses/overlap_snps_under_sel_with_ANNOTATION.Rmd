@@ -113,27 +113,3 @@ count(all)
 
 ```
 
-```{r eval=FALSE, include=FALSE}
-#old
-
-# attempt to create a bed file for subsetting the vcf
-a <- c(snp_under_sel$CHROM, snp_under_sel$POS)
-
-# create the data frame
-#aa <- data.frame(CHROM = snp_under_sel$CHROM, POS = snp_under_sel$POS)
-# create a dataframe that subtracts 1
-#m1 <- (aa$POS - 1)
-#m1 <- as.data.frame(m1)
-# create a dataframe that adds 1
-#p1 <- (aa$POS + 1)
-#p1 <- as.data.frame(p1)
-
-# create a dataframe for the site
-#site <- as.data.frame(aa$CHROM)
-
-# add the chrom label, and position -/+ 1 to create a bed file
-#bed <- cbind(site, m1, p1)
-# save the bed file for later
-#write.table(bed, "snpunderSEL_mm80.bed", sep = "\t")
-```
-
