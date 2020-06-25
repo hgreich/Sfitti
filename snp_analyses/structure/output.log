@@ -1,0 +1,71 @@
+Sat Mar 23 22:03:35 2019: Running validation tests on input files
+Sat Mar 23 22:04:24 2019: Finished validating - Submitting job to queue
+Sat Mar 23 22:05:02 2019: Job 1553378284 was submitted to queue.
+Sun Mar 24 00:05:22 2019: Job 1553378284 started running.
+Sun Mar 24 00:05:22 2019: Job Parameters:
+Sun Mar 24 00:05:22 2019: Input file: thruk5_50percent.zip
+Sun Mar 24 00:05:22 2019: Input type: STRUCTURE
+Sun Mar 24 00:05:22 2019: CLUMPP search method: LargeKGreedy 
+Sun Mar 24 00:05:22 2019: MCL cluster size threshold: 0.1 (default)
+Sun Mar 24 00:05:22 2019: Extracting file: "thruk5_50percent.zip".
+Sun Mar 24 00:05:27 2019: Sorting input files by K
+Sun Mar 24 00:06:08 2019: Working on K=2
+Sun Mar 24 00:06:13 2019: Executing CLUMPP for K=2.
+Sun Mar 24 00:06:13 2019: Clustering K=2 with mcl.
+Sun Mar 24 00:06:13 2019: no cutoff was used
+Sun Mar 24 00:06:13 2019: Executing CLUMPP for major cluster.
+Sun Mar 24 00:06:19 2019: Calculating major cluster LnProb mean and standard deviation.
+Sun Mar 24 00:06:19 2019: LnProb mean: -1052898.95
+Sun Mar 24 00:06:19 2019: LnProb standard deviation: 795.557341024016
+Sun Mar 24 00:06:19 2019: Working on K=3
+Sun Mar 24 00:06:26 2019: Executing CLUMPP for K=3.
+Sun Mar 24 00:06:26 2019: Clustering K=3 with mcl.
+Sun Mar 24 00:06:26 2019: cutoff used: 0.93
+Sun Mar 24 00:06:26 2019: Executing CLUMPP for major cluster.
+Sun Mar 24 00:06:33 2019: Calculating major cluster LnProb mean and standard deviation.
+Sun Mar 24 00:06:33 2019: LnProb mean: -1123256.58
+Sun Mar 24 00:06:33 2019: LnProb standard deviation: 107038.608433112
+Sun Mar 24 00:06:33 2019: Executing CLUMPP for minor clusters.
+Sun Mar 24 00:06:37 2019: Calculating MinorCluster1 LnProb mean and standard deviation.
+Sun Mar 24 00:06:37 2019: LnProb mean: -1335997.46
+Sun Mar 24 00:06:37 2019: LnProb standard deviation: 240358.496696389
+Sun Mar 24 00:06:37 2019: Working on K=4
+Sun Mar 24 00:06:44 2019: Executing CLUMPP for K=4.
+Sun Mar 24 00:06:44 2019: Clustering K=4 with mcl.
+Sun Mar 24 00:06:44 2019: cutoff used: 0.91
+Sun Mar 24 00:06:44 2019: Executing CLUMPP for major cluster.
+Sun Mar 24 00:06:53 2019: Calculating major cluster LnProb mean and standard deviation.
+Sun Mar 24 00:06:53 2019: LnProb mean: -2989514.2125
+Sun Mar 24 00:06:53 2019: LnProb standard deviation: 1128059.46252145
+Sun Mar 24 00:06:53 2019: Executing CLUMPP for minor clusters.
+Sun Mar 24 00:06:55 2019: Calculating MinorCluster1 LnProb mean and standard deviation.
+Sun Mar 24 00:06:55 2019: LnProb mean: -4138956.15
+Sun Mar 24 00:06:55 2019: LnProb standard deviation: 168369.54922172
+Sun Mar 24 00:06:55 2019: Working on K=5
+Sun Mar 24 00:07:03 2019: Executing CLUMPP for K=5.
+Sun Mar 24 00:07:04 2019: Clustering K=5 with mcl.
+Sun Mar 24 00:07:04 2019: cutoff used: 0.79
+Sun Mar 24 00:07:04 2019: Executing CLUMPP for major cluster.
+Sun Mar 24 00:07:10 2019: Calculating major cluster LnProb mean and standard deviation.
+Sun Mar 24 00:07:10 2019: LnProb mean: -3091370.25
+Sun Mar 24 00:07:10 2019: LnProb standard deviation: 404616.179546116
+Sun Mar 24 00:07:10 2019: Executing CLUMPP for minor clusters.
+Sun Mar 24 00:07:14 2019: Calculating MinorCluster1 LnProb mean and standard deviation.
+Sun Mar 24 00:07:14 2019: LnProb mean: -4187805.25
+Sun Mar 24 00:07:14 2019: LnProb standard deviation: 1696391.51916667
+Sun Mar 24 00:07:14 2019: Ordering clusters by size for K=2
+Sun Mar 24 00:07:14 2019: Calling distruct for K=2.MajorCluster
+Sun Mar 24 00:07:14 2019: Calculating best Average Distance between K=2 and K=3..
+Sun Mar 24 00:07:14 2019: Calling distruct for K=3.MajorCluster
+Sun Mar 24 00:07:15 2019: Calculating best Average Distance between K=3 and K=4..
+Sun Mar 24 00:07:15 2019: Calling distruct for K=4.MajorCluster
+Sun Mar 24 00:07:15 2019: Calculating best Average Distance between K=4 and K=5..
+Sun Mar 24 00:07:15 2019: Calling distruct for K=5.MajorCluster
+Sun Mar 24 00:07:16 2019: Calculating best Average Distance between large cluster and K=3.MinorCluster1..
+Sun Mar 24 00:07:16 2019: Calling distruct for K=3.MinorCluster1
+Sun Mar 24 00:07:17 2019: Calculating best Average Distance between large cluster and K=4.MinorCluster1..
+Sun Mar 24 00:07:17 2019: Calling distruct for K=4.MinorCluster1
+Sun Mar 24 00:07:17 2019: Calculating best Average Distance between large cluster and K=5.MinorCluster1..
+Sun Mar 24 00:07:17 2019: Calling distruct for K=5.MinorCluster1
+Sun Mar 24 00:07:18 2019: Creating job summary PDF
+Sun Mar 24 00:07:18 2019: Creating job zip file
