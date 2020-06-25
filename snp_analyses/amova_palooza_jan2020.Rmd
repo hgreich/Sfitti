@@ -1,0 +1,177 @@
+---
+title: "amova_palooza_jan2020"
+author: "Hannah Reich"
+date: "1/13/2020"
+output: html_document
+---
+# code for amova
+# jan 2020 update.
+# took bad notes about old amovas.
+redoing by ~host/pop, ~pop/host, host, and pop. amova takes out missing data
+
+
+```{r}
+# install packages
+#install.packages("poppr",lib="/storage/home/hgr5/ibb3_group/default/genome_resources/Symbiodinium/S.fitti/R/", repos="https://CRAN.R-project.org/")
+#install.packages("dendextend",lib="/storage/home/hgr5/ibb3_group/default/genome_resources/Symbiodinium/S.fitti/R/", repos="https://CRAN.R-project.org/")
+#install.packages("ape",lib="/storage/home/hgr5/ibb3_group/default/genome_resources/Symbiodinium/S.fitti/R/", repos="https://CRAN.R-project.org/")
+#install.packages("dplyr",lib="/storage/home/hgr5/ibb3_group/default/genome_resources/Symbiodinium/S.fitti/R/", repos="https://CRAN.R-project.org/")
+#install.packages("adegenet",lib="/storage/home/hgr5/ibb3_group/default/genome_resources/Symbiodinium/S.fitti/R/", repos="https://CRAN.R-project.org/")
+#install.packages("ade4",lib="/storage/home/hgr5/ibb3_group/default/genome_resources/Symbiodinium/S.fitti/R/", repos="https://CRAN.R-project.org/")
+#install.packages("crayon",lib="/storage/home/hgr5/ibb3_group/default/genome_resources/Symbiodinium/S.fitti/R/", repos="https://CRAN.R-project.org/")
+#install.packages("ggplot2",lib="/storage/home/hgr5/ibb3_group/default/genome_resources/Symbiodinium/S.fitti/R/", repos="https://CRAN.R-project.org/")
+#install.packages("cowplot",lib="/storage/home/hgr5/ibb3_group/default/genome_resources/Symbiodinium/S.fitti/R/", repos="https://CRAN.R-project.org/")
+#install.packages("withr",lib="/storage/home/hgr5/ibb3_group/default/genome_resources/Symbiodinium/S.fitti/R/", repos="https://CRAN.R-project.org/")
+#install.packages("labeling",lib="/storage/home/hgr5/ibb3_group/default/genome_resources/Symbiodinium/S.fitti/R/", repos="https://CRAN.R-project.org/")
+##
+#install.packages("knitr",lib="/storage/home/hgr5/ibb3_group/default/genome_resources/Symbiodinium/S.fitti/R/", repos="https://CRAN.R-project.org/")
+#install.packages("RColorBrewer",lib="/storage/home/hgr5/ibb3_group/default/genome_resources/Symbiodinium/S.fitti/R/", repos="https://CRAN.R-project.org/")
+#install.packages("tidyr",lib="/storage/home/hgr5/ibb3_group/default/genome_resources/Symbiodinium/S.fitti/R/", repos="https://CRAN.R-project.org/")
+#install.packages("yarrr",lib="/storage/home/hgr5/ibb3_group/default/genome_resources/Symbiodinium/S.fitti/R/", repos="https://CRAN.R-project.org/")
+#install.packages("factoextra",lib="/storage/home/hgr5/ibb3_group/default/genome_resources/Symbiodinium/S.fitti/R/", repos="https://CRAN.R-project.org/")
+#install.packages("data.table",lib="/storage/home/hgr5/ibb3_group/default/genome_resources/Symbiodinium/S.fitti/R/", repos="https://CRAN.R-project.org/")
+#install.packages("FactoMineR",lib="/storage/home/hgr5/ibb3_group/default/genome_resources/Symbiodinium/S.fitti/R/", repos="https://CRAN.R-project.org/")
+#install.packages("vctrs",lib="/storage/home/hgr5/ibb3_group/default/genome_resources/Symbiodinium/S.fitti/R/", repos="https://CRAN.R-project.org/")
+
+setwd("/storage/home/hgr5/ibb3_group/default/genome_resources/Symbiodinium/S.fitti/R/")
+
+
+# load them
+library("withr", lib.loc="/storage/home/hgr5/ibb3_group/default/genome_resources/Symbiodinium/S.fitti/R/")
+library("crayon", lib.loc="/storage/home/hgr5/ibb3_group/default/genome_resources/Symbiodinium/S.fitti/R/")
+library("backports", lib.loc="/storage/home/hgr5/ibb3_group/default/genome_resources/Symbiodinium/S.fitti/R/")
+library("vctrs", lib.loc="/storage/home/hgr5/ibb3_group/default/genome_resources/Symbiodinium/S.fitti/R/")
+library("backports", lib.loc="/storage/home/hgr5/ibb3_group/default/genome_resources/Symbiodinium/S.fitti/R/")
+library("ggplot2", lib.loc="/storage/home/hgr5/ibb3_group/default/genome_resources/Symbiodinium/S.fitti/R/")
+library("ade4", lib.loc="/storage/home/hgr5/ibb3_group/default/genome_resources/Symbiodinium/S.fitti/R/")
+library("adegenet", lib.loc="/storage/home/hgr5/ibb3_group/default/genome_resources/Symbiodinium/S.fitti/R/")
+library("dendextend", lib.loc="/storage/home/hgr5/ibb3_group/default/genome_resources/Symbiodinium/S.fitti/R/")
+library("ape", lib.loc="/storage/home/hgr5/ibb3_group/default/genome_resources/Symbiodinium/S.fitti/R/")
+library("dplyr", lib.loc="/storage/home/hgr5/ibb3_group/default/genome_resources/Symbiodinium/S.fitti/R/")
+library("poppr", lib.loc="/storage/home/hgr5/ibb3_group/default/genome_resources/Symbiodinium/S.fitti/R/")
+library("cowplot", lib.loc="/storage/home/hgr5/ibb3_group/default/genome_resources/Symbiodinium/S.fitti/R/")
+library("labeling", lib.loc="/storage/home/hgr5/ibb3_group/default/genome_resources/Symbiodinium/S.fitti/R/")
+library("mmod", lib.loc="/storage/home/hgr5/ibb3_group/default/genome_resources/Symbiodinium/S.fitti/R/")
+library("phangorn", lib.loc="/storage/home/hgr5/ibb3_group/default/genome_resources/Symbiodinium/S.fitti/R/")
+library("apex", lib.loc="/storage/home/hgr5/ibb3_group/default/genome_resources/Symbiodinium/S.fitti/R/")
+library(hierfstat, lib.loc="/storage/home/hgr5/ibb3_group/default/genome_resources/Symbiodinium/S.fitti/R/")
+library("vcfR", lib.loc="/storage/home/hgr5/ibb3_group/default/genome_resources/Symbiodinium/S.fitti/R/")
+library(knitr, lib.loc="/storage/home/hgr5/ibb3_group/default/genome_resources/Symbiodinium/S.fitti/R/")
+library(pegas, lib.loc="/storage/home/hgr5/ibb3_group/default/genome_resources/Symbiodinium/S.fitti/R/")
+library(RColorBrewer, lib.loc="/storage/home/hgr5/ibb3_group/default/genome_resources/Symbiodinium/S.fitti/R/")
+library(pegas, lib.loc="/storage/home/hgr5/ibb3_group/default/genome_resources/Symbiodinium/S.fitti/R/")
+library(tidyr, lib.loc="/storage/home/hgr5/ibb3_group/default/genome_resources/Symbiodinium/S.fitti/R/")
+library("FactoMineR", lib.loc="/storage/home/hgr5/ibb3_group/default/genome_resources/Symbiodinium/S.fitti/R/")
+library("factoextra", lib.loc="/storage/home/hgr5/ibb3_group/default/genome_resources/Symbiodinium/S.fitti/R/")
+library("data.table", lib.loc="/storage/home/hgr5/ibb3_group/default/genome_resources/Symbiodinium/S.fitti/R/")
+library("memuse", lib.loc="/storage/home/hgr5/ibb3_group/default/genome_resources/Symbiodinium/S.fitti/R/")
+library("magrittr", lib.loc="/storage/home/hgr5/ibb3_group/default/genome_resources/Symbiodinium/S.fitti/R/")
+library("ggpubr", lib.loc="/storage/home/hgr5/ibb3_group/default/genome_resources/Symbiodinium/S.fitti/R/")
+
+
+# read in the data file
+vcf <- read.vcfR("/storage/home/hgr5/ibb3_group/default/genome_resources/Symbiodinium/S.fitti/newsamples_092018/mm80_nov18/contam_removal_08082019/hq_nocontam_rename_aug19.vcf")
+
+# add in poptab
+poptab <- read.table("/storage/home/hgr5/ibb3_group/default/genome_resources/Symbiodinium/S.fitti/newsamples_092018/mm80_nov18/contam_removal_08082019/poptab.txt", header = T)
+
+# create gind
+gind <- vcfR2genind(vcf)
+ploidy(gind) <- as.integer(1)
+gind@pop <- as.factor(poptab$host)
+
+strata(gind) <- data.frame(poptab[,1:2]) # this adds in host and location as an identifier. can add in multiple variables
+
+genind_clone <-as.genclone(gind)
+genind_clone
+
+
+# amova results below for il. this is for all snps
+### Do the amova (by ~host/pop)
+amova <- poppr.amova(genind_clone, ~host/pop)
+amova
+
+set.seed(1999)
+signif <- randtest(amova, nrepet = 999)
+signif
+plot(signif)
+
+### Do the amova (by ~pop/host)
+amova2 <- poppr.amova(genind_clone, ~pop/host)
+amova2
+
+set.seed(1999)
+signif2   <- randtest(amova2, nrepet = 999)
+signif2
+plot(signif2)
+
+### Do the amova (by ~pop)
+amova2 <- poppr.amova(genind_clone, ~pop)
+amova2
+
+set.seed(1999)
+signif2   <- randtest(amova2, nrepet = 999)
+signif2
+plot(signif2)
+
+### Do the amova (by ~host)
+amova2 <- poppr.amova(genind_clone, ~host)
+amova2
+
+set.seed(1999)
+signif2   <- randtest(amova2, nrepet = 999)
+signif2
+plot(signif2)
+
+
+####
+#######
+## take the missing data out of the gind
+nomiss <- missingno(genind_clone, type = "loci", quiet = TRUE, freq = FALSE)
+nomiss
+
+#convert genind to genclone object
+gclo<-as.genclone(nomiss)
+
+# no miss amova. no loci with missing values above 5% found
+# ~host/pop
+amova <- poppr.amova(nomiss, ~host/pop)
+amova
+
+set.seed(1999)
+signif   <- randtest(amova, nrepet = 999)
+signif
+plot(signif)
+
+#~pop/host
+amova <- poppr.amova(nomiss, ~host/pop)
+amova
+
+set.seed(1999)
+signif   <- randtest(amova, nrepet = 999)
+signif
+plot(signif)
+
+#~pop
+amova <- poppr.amova(nomiss, ~pop)
+amova
+
+set.seed(1999)
+signif   <- randtest(amova, nrepet = 999)
+signif
+plot(signif)
+
+#~host
+amova <- poppr.amova(nomiss, ~host)
+amova
+
+set.seed(1999)
+signif   <- randtest(amova, nrepet = 999)
+signif
+plot(signif)
+
+
+```
+
+
+
