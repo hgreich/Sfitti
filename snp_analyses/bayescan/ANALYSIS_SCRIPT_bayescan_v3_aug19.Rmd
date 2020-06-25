@@ -5,6 +5,8 @@ date: "Aug 20, 2019"
 output: html_document
 ---
 
+this script utilizes the bayescan plotR.r script. it can be found here: http://www.cmpg.unibe.ch/software/BayeScan/files/BayeScan2.0_manual.pdf
+
 ```{r}
 # aug 20 2019
 # this is identicle to the feb 2019 analyses but removes a small subset of contaminated snps
