@@ -6,8 +6,9 @@ output: html_document
 ---
 # code for amova
 # jan 2020 update.
-# took bad notes about old amovas.
+# 
 redoing by ~host/pop, ~pop/host, host, and pop. amova takes out missing data
+# this script loads more packages than necessary.... anything to get R to work smoothly on the ACI server
 
 
 ```{r}
