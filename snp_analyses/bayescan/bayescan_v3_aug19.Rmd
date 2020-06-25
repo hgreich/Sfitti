@@ -141,7 +141,18 @@ all <- bind_rows(sub, overlap)
 count(all)
 
 # write out the data
-write.table(all, "alloutlier_BAYESCAN_stats.txt", sep = "\t")
+#write.table(all, "alloutlier_BAYESCAN_stats.txt", sep = "\t")
+
+#### the old bayescan table was super ugly. writing a new one
+#just rbind the loc, host, and hostXloc versions (anything to have a zillion columns for the bayes output)
+# the objects are hostouts and locouts
+# all of the hostXloc outliers overlapped with the host and loc outliers, leaving them alone because it makes the merged files very very messy
+hostouts$Outlier_Type <- c("Bayescan Host")
+locouts$Outlier_Type <- c("Bayescan Location")
+
+both <- rbind(hostouts,locouts)
+write.table(both, "bayescan_outliers_clean.txt", sep = "\t")
+
 
 ```
 
