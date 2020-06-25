@@ -27,84 +27,6 @@ library(cowplot)
 ```{r}
 setwd("~/Desktop/PhD/Symbiodinium fitti/SNP_under_selection/v_contam_rm_08082019/")
 
-# add in pop (this has hostXloc so eventually you can split them up)
-poptab <- read.table("~/Desktop/PhD/Symbiodinium fitti/contam_rm_080819/poptab_noBP.txt", header = T)
-
-# import the vcf file
-path <- "~/Desktop/PhD/Symbiodinium fitti/contam_rm_080819/hq_nocontam_rename_aug19.vcf"
-vcf <- read.pcadapt(path, type = "vcf", type.out = "matrix", ploidy = 1)
-
-# run pcadapt, test up to 20 clusters/pops
-acp <- pcadapt(input = vcf, K = 20)
-
-# Screeplot displays in decreasing order the percentage of variance explained by each PC
-plot(acp, option = "screeplot",  K = 20)
-
-#displays the PCA results colored by collection regions
-pca <- plot(acp, option = "scores", gg.col=transp(cols, 1.0)) +
-  geom_point(aes(color=poptab$host))
-pca
-
-# wrangle into a new dataframe
-df1 <- data.frame(Species = poptab[,1], Loc = poptab[,2], ID = poptab[,3], pca = pca$data)
-all_pca <- as.data.frame(df1)
-f <- ggplot(all_pca) + 
-  geom_point(aes(all_pca$pca.PC_i, all_pca$pca.PC_j,
-               color = all_pca$Species, shape = all_pca$Loc), 
-                 size = 3) +
- # stat_ellipse(geom = "polygon", type = "t", alpha = 0.125, show.legend = FALSE,
-       #        aes(all_pca$pca.PC_i, all_pca$pca.PC_j, fill = all_pca$Loc)) + 
-  labs(title = "All loci, PCAdapt PCA", x="PC1", y="PC2")
-f
-save_plot("pca_adapt.png", f, base_aspect_ratio = 1.6)
-
-plot(acp, option = "scores", i = 1, j = 3, pop = poptab$host, gg.col=transp(cols,0.6))
-plot(acp, option = "scores", i = 1, j = 4, pop = poptab$host, gg.col=transp(cols,0.6))
-
-plot(acp, option = "scores", i = 2, j = 3, pop = poptab$host, gg.col=transp(cols,0.6))
-plot(acp, option = "scores", i = 2, j = 4, pop = poptab$host, gg.col=transp(cols,0.6))
-
-# Re-run with the best PC based on the screen plot above but doing genome scan for each principal component to get component-wise p-values. The test statistics are the loadings, which correspond to the correlations between each PC and each SNP. P-values are computed by making a Gaussian approximation for each PC and by estimating the standard deviation of the null distribution. 
-y <- pcadapt(vcf, K = 3, method = "componentwise") #K is the best number of PC from above
-summary(y)
-summary(y$pvalues)
-
-#A Manhattan plot displays −log10 of the p-values.
-plot(y , option = "manhattan", K=2)
-
-#Check the expected uniform distribution of the p-values using a Q-Q plot and histogram of the pvalues to check the distribution.
-plot(y, option = "qqplot", threshold = 0.1)
-
-hist(y$pvalues, xlab = "p-values", main = NULL, breaks = 50, col = "orange")
-plot(y, option = "stat.distribution")
-
-# The p-values were transformed into qvalues to control for false discovery rate, or the percentage of false discoveries among the list of candidate SNPs. I used  (alpha = 0.05).
-qval1 <- qvalue(y$pvalues[,1])$qvalues
-alpha <- 0.05
-outliers1 <- which(qval1 < alpha)
-length(outliers1)
-
-snp_pc1 <- get.pc(y, outliers1)
-# PC1
-length(which(snp_pc1$PC =="1"))
-#PC2
-length(which(snp_pc1$PC =="2"))
-
-vcfr <- read.vcfR("~/Desktop/PhD/Symbiodinium fitti/contam_rm_080819/hq_nocontam_rename_aug19.vcf")
-
-#pull out chrom and position from VCF file
-t <- getCHROM(vcfr)
-u <- getPOS(vcfr)
-r<- paste(t,u,sep="_") #loci names
-
-# make a data frame of q/pvalues
-qvalz <- as.data.frame(qval1)
-pvalz <- as.data.frame(y$pvalues)
-out2<-cbind(as.integer(rownames(pvalz)),r, pvalz,qvalz)
-head(out2)
-
-# getting an extra column. reading in the pcadapt ooutliers from my table
-colnames(out2)<-c("ID","site", "LocusName","pca_pvalue_p1","pca_pvalue_p2", "pca_qvalue")
 
 c <- read.table("PCADAPT_ALLvalues.txt", header=T)
 # read in the bayescan results
@@ -117,51 +39,6 @@ outliers<- c  %>%
   mutate(BAYES_outlier = ifelse(ID %in% b$ID, "TRUE", "FALSE")) 
 #separate(LocusName, into = c("chrom", "pos"), sep="_(?=[^_]+$)")
 
-# make one bit manhattan plot
-plot(outliers$ID, outliers$PCA.q.val, xlab="All da snps", ylab="FST", col=rgb(0,0,0,0.1),pch=20,cex=1.5, ylim=c(0,1))
-points(outliers$pos[outliers$BAYES_outlier=="TRUE"], col=rgb(0,1,0.5,0.3), pch=15)
-points(outliers$pos[outliers$PCA_outlier =="TRUE"], col=rgb(0,0,1, 0.3), pch=18)
-legend("topright", c("BayeScan","PCAdapt"),bty="n",pch=c(15,19), col=c(rgb(0,1,0.5,0.3),rgb(0,0,1, 0.3)))
-
-# log -10 them
-outliers$PCA.q.val_LOG <- (log(outliers$PCA.q.val, base=10))*-1
-outliers$BAYES_qval_LOG <- (log(outliers$BAYES_qval, base=10))*-1
-
-bayes <- outliers %>%
-  group_by(BAYES_outlier) %>% 
-  filter(BAYES_outlier == "TRUE") %>%
-  ungroup()
-
-pca <- outliers %>%
-  group_by(PCA_outlier) %>% 
-  filter(PCA_outlier == "TRUE") %>%
-  ungroup()
-
-# https://yutani.rbind.io/post/2017-10-06-gghighlight/
-# reattempting this
-ggplot(outliers, aes(ID, PCA.q.val_LOG)) +
-  geom_point(colour = alpha("grey", 0.7))  +
-    geom_point(aes(ID, PCA.q.val_LOG), data = pca, color = "blue") +
-  geom_point(aes(ID, BAYES_qval_LOG), data = bayes, color = "red")
-
-# add a fake chromosome column
-outliers$CHR <- c("1")
-outliers$CHR <- as.numeric(outliers$CHR)
-
-bayes <- outliers %>%
-  group_by(BAYES_outlier) %>% 
-  filter(BAYES_outlier == "TRUE") %>%
-  ungroup()
-bayes_h <- bayes$ID
-
-pca <- outliers %>%
-  group_by(PCA_outlier) %>% 
-  filter(PCA_outlier == "TRUE") %>%
-  ungroup()
-
-pca_h <- pca$ID
-
-manhattan(subset(outliers, CHR == 1), bp = "ID", snp="ID", p="PCA.p.val", ylim=c(0,80), suggestiveline = FALSE, genomewideline = TRUE, highlight = c(bayes_h))  #Where to draw a "genome-wide sigificant" line. Default -log10(5e-8). 
 
 # ggplot version https://www.r-graph-gallery.com/101_Manhattan_plot.html, https://cran.r-project.org/web/packages/qqman/vignettes/qqman.html
 # do this eventually https://github.com/sahirbhatnagar/manhattanly
