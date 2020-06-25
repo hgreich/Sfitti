@@ -12,7 +12,6 @@ output: html_document
 library("devtools")
 #source("https://bioconductor.org/biocLite.R")
 #biocLite("qvalue")
-#install_github("whitlock/OutFLANK")
 library("pcadapt")
 library("qvalue")
 library("OutFLANK")
