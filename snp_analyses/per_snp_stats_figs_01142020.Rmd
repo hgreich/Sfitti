@@ -1,0 +1,91 @@
+---
+title: "per_snp_stats_figs_01142020"
+author: "Hannah Reich"
+date: "1/14/2020"
+output: html_document
+---
+
+```{r}
+
+# combined 2 per snp stats files a few weeks ago. running some run of the mill histograms to show that there are snps that are "fixed"
+
+# this paper is super helpful (review of the different indicators, Nei 1985) https://www.jstor.org/stable/2408586?seq=2#metadata_info_tab_contents
+
+# first file info
+# this uses the diff_stats() function (from mmod package) of the genotyping gind. it is in the file gac_estimates_v2.R. 
+# By default this function calculates three different statistics of differentiation for a genetic dataset. Nei’s Gst, Hedrick’s G”st and Jost’s D
+
+# second file info
+# the code to get these stats is in the "pairwise_fst_v1.Rmd" file. # the function basic.stats() provides the observed heterozygosity (Ho), mean gene diversities within population (Hs), Fis, and Fst
+#basicstat <- basic.stats(Mydata2, diploid = FALSE, digits = 2). function in hierfstat package
+# info on the different stats from page 7 of the hierfstat manual
+#The amount of gene diversity among samples Dst = Ht − Hs
+# Hs = avg heterozygosity expected under HW
+# Ht = is heterozygosity expected under HW
+# Dst = measure of interpopulational gene differences
+#Dst' = np/(np − 1)Dst
+#Ht' = Hs + Dst'
+#Fst = Dst/Ht.(This is not the same as Nei’s Gst, Nei’s Gst is an estimator of Fst based on allele frequencies only)
+#Fst' = Dst'/Ht'
+#Last, Dest = np/(np−1)(Ht' −Hs)/(1−Hs) a measure of population differentiation as defined by Jost (2008) is also given
+
+# load packages
+library(ggplot2)
+library(ggpubr)
+library(dplyr)
+library(reshape2)
+library(cowplot)
+
+# set working directorty
+setwd("~/Desktop/PhD/Symbiodinium fitti/contam_rm_080819/")
+
+dat <- read.table("~/Desktop/PhD/Symbiodinium fitti/blast reports/perSNPstats.txt", header = T)
+
+# rename columns
+colnames(dat)[1:14] <- c("ID", "Hs (hierfstat)", "Ht, hierfstat", "Dst (Ht-Hs)", "Ht'", "Dst'", "Fst (Dst/Ht)", "Fst' (Dst'/Ht')", "Dest", "Hs (mmod)", "Ht, mmod", "Nei Gst", "Hendrick G'st", "Jost D")
+
+# melt the data for faceting and looping
+melt <- melt(dat, id.vars = c("ID")) # this is for the loop
+
+# this is for the fig (presenting Fst, Hendrick G'st, Gst Nei, Jost D)
+melt2 <- melt(dat, id.vars = c("ID"), measure.vars = c("Fst (Dst/Ht)", "Nei Gst", "Hendrick G'st", "Jost D"))
+
+# this is the facet for the supplement
+# All of the fixation indices range from 0-1. 0 means no fixation, shouldn't be negative (also means no fixation). so replacing negative values with 0s
+melt2_na <- na.omit(melt2)
+melt2_na[melt2_na<0] <- 0
+
+facet <- ggplot(data=melt2_na, aes(x=value)) +
+  theme_pubr() +
+  geom_histogram(binwidth = 0.05, colour = "darkgray") +
+#  geom_freqpoly(colour = "blue") +
+ # geom_histogram(colour="grey", fill="grey",
+               # binwidth = function(x) 2 * IQR(x) / (length(x)^(1/3))) +
+  facet_wrap(~variable, scales = "free_y") +
+  theme(axis.text.x = element_text(angle = 45, hjust=1))
+facet
+save_plot("per_snp_fixation.pdf", facet, base_aspect_ratio = 1.9)
+
+# this is the loop
+# spit out density plots (dont bother faceting 13 variables)
+snp_den <- function(mycolumn){
+  for (i in 1:length(unique(mycolumn))) {
+    mycolumn2 <- as.vector(unique(mycolumn))
+    data <- filter(melt, mycolumn %in% unique(mycolumn)[i])
+    
+    myplot <- ggplot(data=data, aes(x=value)) +
+      theme_pubr() +
+      geom_histogram(aes(y=..density..), colour="powderblue", fill="powderblue",
+                     binwidth = function(x) 2 * IQR(x) / (length(x)^(1/3)))+
+     # geom_density(alpha=.2, fill="gray85", colour = "gray100") +
+      labs(title = paste0(mycolumn2[i]), y= "Density")
+    
+   # save_plot(paste0(mycolumn2[i], "_byhost.png"), myplot)
+    print(myplot)
+  }
+}
+
+snp_den(melt$variable)
+
+```
+

@@ -1,0 +1,48 @@
+---
+title: "TsTv_01122020"
+author: "Hannah Reich"
+date: "1/13/2020"
+output: html_document
+---
+
+```{r echo=FALSE, warning=FALSE}
+# make box plots of transitions and transversions and total TsTv by species (and location)
+
+setwd("~/Desktop/PhD/Symbiodinium fitti/contam_rm_080819/")
+
+library(readxl)
+library(ggplot2)
+library(cowplot)
+library(ggpubr)
+library(reshape2)
+library(tidyverse)
+library(dplyr)
+
+dat <- read_excel("~/Desktop/PhD/Symbiodinium fitti/list of sequence samples.xlsx", sheet = "TsTv_012020")
+
+```
+
+```{r}
+dat <- as.data.frame(dat)
+
+# melt the data
+melt <- melt(dat, id.vars = c("Sample", "Host_Species","Population"), measure.vars = c("Transitions", "Transversions", "TsTv"))
+
+my_comparisons <- list(c("A. palmata", "A. prolifera"), c("A. palmata", "A. cervicornis"), c("A. cervicornis", "A. prolifera"))
+my_comparisons2 <- list(c("Florida", "Bahamas"), c("Florida", "Curacao"), c("Florida", "US Virgin Islands"), c("Florida", "Belize"),
+                        c("Belize", "Bahamas"), c("Belize", "Curacao"), c("Belize", "US Virgin Islands"), 
+                        c("Bahamas", "Curacao"), c("Bahamas", "US Virgin Islands"),
+                        c("Curacao", "US Virgin Islands"))
+
+fig <- ggplot(data = melt, aes(x = Population, y = value)) +
+  theme_pubr() +
+  geom_boxplot() +
+  stat_compare_means(comparisons = my_comparisons2) +
+  facet_wrap(~variable, scales = "free_y") +
+  theme(axis.text.x = element_text(angle = 30, hjust = 1))
+
+fig
+  
+
+```
+
