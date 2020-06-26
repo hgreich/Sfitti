@@ -1,0 +1,224 @@
+---
+title: "Sfitti MultiLocusGenotypes"
+author: "Sheila K, El K, Hannah R, Belle R"
+date: "06/15/2020"
+output: html_document
+---
+
+Script adapted from SAK, HannR update, objective: get table of MLGs for different thresholds (.1, .11, .15, .2) for the different SNP sets (high quality ~58,000; conservative no missing ~6,000)
+
+Load Packages:
+```{r message=FALSE}
+# load the relevant packages 
+library(vcfR)
+library(poppr)
+library(adegenet)
+library(ape)
+library(ggplot2)
+library(knitr)
+library(RColorBrewer)
+library(dplyr)
+library(cowplot)
+library(readxl)
+library(hierfstat)
+library(pegas)
+library("apex")
+library("mmod")
+library(data.table)
+library(tidyr)
+```
+
+## Import the VCF and poptab files
+```{r}
+# set the working directory
+setwd("~/Desktop/PhD/Symbiodinium fitti/contam_rm_080819/MLG/")
+
+# load in the vcf
+hq <- read.vcfR("~/Desktop/PhD/Symbiodinium fitti/contam_rm_080819/hq_nocontam_rename_aug19.vcf") #high quality ~58,000 snp set
+nm <- read.vcfR("~/Desktop/PhD/Symbiodinium fitti/contam_rm_080819/fitti_conservative_nomissing_6813snpsubset.vcf") # conservative snp set ~6,000 with no missing data
+
+poptab<-read.table("~/Desktop/PhD/Symbiodinium fitti/contam_rm_080819/poptab.txt",check.names=FALSE, header=T, na.strings=c("", "NA"), stringsAsFactors=FALSE, sep="\t",quote="")
+
+colnames(poptab) <- c("user_specimen_id", "region", "species", "regionXhost")
+
+
+```
+
+### MLG flow through for HQ snps
+```{r}
+# create genind
+gind_hq <- vcfR2genind(hq)
+ploidy(gind_hq) <- as.integer(1)
+gind_hq@pop <- as.factor(poptab$region) # color by region
+strata(gind_hq) <- data.frame(poptab[,c(2,3)])
+gind_hq
+
+genind_clone_hq <-as.genclone(gind_hq)
+genind_clone_hq 
+
+## Calculate MLGs. Here we calculate the pairwise bitwise or Prevosti's absolute genetic distance matrix.
+#calculate the bitwise distance between individuals
+xdis_hq <-bitwise.dist(genind_clone_hq, missing_match=FALSE)
+
+### Different clustering methods for tie breakers used by mlg.filter, default is farthest neighbor
+
+gclo_filtered_hq <- filter_stats(genind_clone_hq, distance = xdis_hq, plot = TRUE)
+
+print(farthest_thresh <- cutoff_predictor(gclo_filtered_hq$farthest$THRESHOLDS))
+## [1] 0.116198
+print(average_thresh <- cutoff_predictor(gclo_filtered_hq$average$THRESHOLDS))
+## [1] 0.111654
+print(nearest_thresh <- cutoff_predictor(gclo_filtered_hq$nearest$THRESHOLDS))
+## [1] 0.1128412
+
+### Multilocus genotypes (threshold of 10%)
+mlg.filter(genind_clone_hq, distance= xdis_hq) <- 0.10
+m<-mlg.table(genind_clone_hq, background=TRUE, color=TRUE)
+
+v.dup <- mlg.crosspop(genind_clone_hq, quiet=TRUE) #double check that there are no shared sym MLGs between regions
+v.dup
+
+### Create table of MLGs. This will be the table of samples that share MLG ids. 
+id<-mlg.id(genind_clone_hq)
+dt<-data.table(id,keep.rownames = TRUE)
+#setnames(dt, c("id"), c("user_id"))
+dt1<-as.data.frame(dt)
+dt1 <- apply(dt1,2,as.character)
+#write.csv(dt1, "hq_10threshold.csv")
+
+### Multilocus genotypes (threshold of 11%)
+mlg.filter(genind_clone_hq, distance= xdis_hq) <- 0.11
+m<-mlg.table(genind_clone_hq, background=TRUE, color=TRUE)
+
+v.dup <- mlg.crosspop(genind_clone_hq, quiet=TRUE) #double check that there are no shared sym MLGs between regions
+v.dup
+
+### Create table of MLGs. This will be the table of samples that share MLG ids. 
+id<-mlg.id(genind_clone_hq)
+dt<-data.table(id,keep.rownames = TRUE)
+#setnames(dt, c("id"), c("user_id"))
+dt1<-as.data.frame(dt)
+dt1 <- apply(dt1,2,as.character)
+write.csv(dt1, "hq_11threshold.csv")
+
+### Multilocus genotypes (threshold of 15%)
+mlg.filter(genind_clone_hq, distance= xdis_hq) <- 0.15
+m<-mlg.table(genind_clone_hq, background=TRUE, color=TRUE)
+
+v.dup <- mlg.crosspop(genind_clone_hq, quiet=TRUE) #double check that there are no shared sym MLGs between regions
+v.dup
+
+### Create table of MLGs. This will be the table of samples that share MLG ids. 
+id<-mlg.id(genind_clone_hq)
+dt<-data.table(id,keep.rownames = TRUE)
+#setnames(dt, c("id"), c("user_id"))
+dt1<-as.data.frame(dt)
+dt1 <- apply(dt1,2,as.character)
+write.csv(dt1, "hq_15threshold.csv")
+
+### Multilocus genotypes (threshold of 20%)
+mlg.filter(genind_clone_hq, distance= xdis_hq) <- 0.2
+m<-mlg.table(genind_clone_hq, background=TRUE, color=TRUE)
+
+v.dup <- mlg.crosspop(genind_clone_hq, quiet=TRUE) #double check that there are no shared sym MLGs between regions
+v.dup
+
+### Create table of MLGs. This will be the table of samples that share MLG ids. 
+id<-mlg.id(genind_clone_hq)
+dt<-data.table(id,keep.rownames = TRUE)
+#setnames(dt, c("id"), c("user_id"))
+dt1<-as.data.frame(dt)
+dt1 <- apply(dt1,2,as.character)
+write.csv(dt1, "hq_20threshold.csv")
+
+```
+
+### do same MLG steps for conservative no missing set
+```{r}
+# create genind
+gind_nm <- vcfR2genind(nm)
+ploidy(gind_nm) <- as.integer(1)
+gind_nm@pop <- as.factor(poptab$region) # color by region
+strata(gind_nm) <- data.frame(poptab[,c(2,3)])
+gind_nm
+
+genind_clone_nm <-as.genclone(gind_nm)
+genind_clone_nm 
+
+## Calculate MLGs. Here we calculate the pairwise bitwise or Prevosti's absolute genetic distance matrix.
+#calculate the bitwise distance between individuals
+xdis_nm <-bitwise.dist(genind_clone_nm, missing_match=FALSE)
+
+### Different clustering methods for tie breakers used by mlg.filter, default is farthest neighbor
+
+gclo_filtered_nm <- filter_stats(genind_clone_nm, distance = xdis_nm, plot = TRUE)
+
+print(farthest_thresh <- cutoff_predictor(gclo_filtered_nm$farthest$THRESHOLDS))
+## [1] 0.1585491
+print(average_thresh <- cutoff_predictor(gclo_filtered_nm$average$THRESHOLDS))
+## [1] 0.2021923
+print(nearest_thresh <- cutoff_predictor(gclo_filtered_nm$nearest$THRESHOLDS))
+## [1] 0.1894106
+
+### Multilocus genotypes (threshold of 10%)
+mlg.filter(genind_clone_nm, distance= xdis_nm) <- 0.10
+m<-mlg.table(genind_clone_nm, background=TRUE, color=TRUE)
+
+v.dup <- mlg.crosspop(genind_clone_nm, quiet=TRUE) #double check that there are no shared sym MLGs between regions
+v.dup
+
+### Create table of MLGs. This will be the table of samples that share MLG ids. 
+id<-mlg.id(genind_clone_nm)
+dt<-data.table(id,keep.rownames = TRUE)
+#setnames(dt, c("id"), c("user_id"))
+dt1<-as.data.frame(dt)
+dt1 <- apply(dt1,2,as.character)
+write.csv(dt1, "nm_10threshold.csv")
+
+### Multilocus genotypes (threshold of 11%)
+mlg.filter(genind_clone_nm, distance= xdis_nm) <- 0.11
+m<-mlg.table(genind_clone_nm, background=TRUE, color=TRUE)
+
+v.dup <- mlg.crosspop(genind_clone_nm, quiet=TRUE) #double check that there are no shared sym MLGs between regions
+v.dup
+
+### Create table of MLGs. This will be the table of samples that share MLG ids. 
+id<-mlg.id(genind_clone_nm)
+dt<-data.table(id,keep.rownames = TRUE)
+#setnames(dt, c("id"), c("user_id"))
+dt1<-as.data.frame(dt)
+dt1 <- apply(dt1,2,as.character)
+write.csv(dt1, "nm_11threshold.csv")
+
+### Multilocus genotypes (threshold of 15%)
+mlg.filter(genind_clone_nm, distance= xdis_nm) <- 0.15
+m<-mlg.table(genind_clone_nm, background=TRUE, color=TRUE)
+
+v.dup <- mlg.crosspop(genind_clone_nm, quiet=TRUE) #double check that there are no shared sym MLGs between regions
+v.dup
+
+### Create table of MLGs. This will be the table of samples that share MLG ids. 
+id<-mlg.id(genind_clone_nm)
+dt<-data.table(id,keep.rownames = TRUE)
+#setnames(dt, c("id"), c("user_id"))
+dt1<-as.data.frame(dt)
+dt1 <- apply(dt1,2,as.character)
+write.csv(dt1, "nm_15threshold.csv")
+
+### Multilocus genotypes (threshold of 20%)
+mlg.filter(genind_clone_nm, distance= xdis_nm) <- 0.2
+m<-mlg.table(genind_clone_nm, background=TRUE, color=TRUE)
+
+v.dup <- mlg.crosspop(genind_clone_nm, quiet=TRUE) #double check that there are no shared sym MLGs between regions
+v.dup
+
+### Create table of MLGs. This will be the table of samples that share MLG ids. 
+id<-mlg.id(genind_clone_nm)
+dt<-data.table(id,keep.rownames = TRUE)
+#setnames(dt, c("id"), c("user_id"))
+dt1<-as.data.frame(dt)
+dt1 <- apply(dt1,2,as.character)
+write.csv(dt1, "nm_20threshold.csv")
+
+```
+
