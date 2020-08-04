@@ -26,46 +26,12 @@ setwd("~/Desktop/PhD/Symbiodinium fitti/SNP_under_selection/v_contam_rm_08082019
 path <- "~/Desktop/PhD/Symbiodinium fitti/contam_rm_080819/hq_nocontam_rename_aug19.vcf"
 vcf <- read.pcadapt(path, type = "vcf", type.out = "matrix", ploidy = 1)
 
-# designate populations. This round is by host identity
-hostpop <- c( rep("Hybrid", 9), rep("Cervicornis", 16), rep("Palmata", 8), rep("Hybrid", 4), rep("Backcross Palmata", 1), rep("Hybrid", 3), rep("Backcross Palmata", 1), rep("Palmata", 3), rep("Hybrid", 1), rep("Cervicornis", 1), rep("Palmata", 1))
-print(hostpop)
-
-# host x loc pop
-hostlocpop <- c(rep("Hybrid VI", 4), rep("Hybrid BE", 4), rep("Hybrid CU", 1), rep("Cervicornis FL", 4), rep("Cervicornis VI", 4), rep("Cervicornis BE", 4), rep("Cervicornis CU", 4), rep("Palmata FL", 5), rep("Palmata BE", 1), rep("Palmata CU", 2), rep("Hybrid FL", 1), rep("Hybrid VI", 1), rep("Hybrid BE", 2), rep("Backcross Palmata BA", 1), rep("Hybrid VI", 3), rep("Backcross Palmata VI", 1), rep("Palmata CU", 2), rep("Palmata BE", 1), rep("Hybrid BE", 1), rep("Cervicornis BE", 1), rep("Palmata FL", 1)) 
-print(hostlocpop)
-
-# make colors for host loc pop
-cols <- c("Backcross Palmata BA" = "moccasin", "Backcross Palmata VI" = "navajowhite3", 
-          "Cervicornis BE" = "cadetblue1", "Cervicornis CU" = "cyan1", "Cervicornis FL" = "deepskyblue1", "Cervicornis VI" = "blue", 
-          "Hybrid BE" = "coral", "Hybrid CU" = "coral3", "Hybrid FL" = "firebrick2", "Hybrid VI" = "darkred",
-          "Palmata BE" = "palegreen", "Palmata CU" = "palegreen3", "Palmata FL" = "palegreen4")
-
 # chose the number of K principal components
 pc <- pcadapt(input = vcf, K = 10)
 summary(pc)
 
 # make a scree plot
 plot(pc, option = "screeplot")
-
-#### COLOR BY HOST
-# make a PC1 and PC2 plot
-host <-  plot(pc, option = "scores", pop = hostpop)
-save_plot("host_mm80_pca.png", host, base_aspect_ratio = 1.4)
-# make a PC2 and PC3 plot
-plot(pc, option = "scores", i = 2, j = 3, pop = hostpop)
-# make a PC3 and PC4 plot
-plot(pc, option = "scores", i =  3, j = 4, pop = hostpop)
-
-#### COLOR BY HOSTxLOC
-#### COLOR BY HOST
-# make a PC1 and PC2 plot
-loc <- plot(pc, option = "scores", pop = hostlocpop, col = cols)
-# make a PC2 and PC3 plot
-plot(pc, option = "scores", i = 2, j = 3, pop = hostlocpop, col = cols)
-# make a PC3 and PC4 plot
-plot(pc, option = "scores", i =  3, j = 4, pop = hostlocpop, col = cols)
-
-save_plot("host_loc_mm80pca.png", loc, base_aspect_ratio = 1.4)
 
 # make a manhattan plot
 # communality test
