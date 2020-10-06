@@ -1,0 +1,191 @@
+---
+title: "coolgenez_v3"
+author: "Hannah Reich"
+date: "12/20/2019"
+output: html_document
+---
+
+
+THis is table S7
+```{r}
+# updated version of the script that is a loop which plots nucleotide frequency by host for SNPs under selection in coding regions
+# this version has been updated for the no contam version of SNP analyses (removed a subset genotyping SNPS and ultimately a subset of SNPs under selection)
+# this version also attempts to remove ALL analyses from excel. it also weaves in stats for per SNP Fst's and outlier Q-values.
+
+# load the packages
+library(readxl)
+library(Hmisc)
+library(ggplot2)
+library(cowplot)
+library(readxl)
+library(dplyr)
+library(reshape2)
+library(ggpubr)
+library(sciplot)
+library(plyr) # for the count function
+library(tidyr)
+
+# set the working directory
+setwd("~/Desktop/PhD/Symbiodinium fitti/blast reports/")
+
+# read in the data. this is a file with annotation and selection outlier stats for each snp under selection in coding regions.
+dat <- read.table("~/Desktop/PhD/Symbiodinium fitti/SNP_under_selection/v_contam_rm_08082019/OUTLIERONLY_snp_annotation_cov_outlierstats.txt", header=TRUE)
+
+# read in the perSNP Fst stats and the basic stats info
+# the code to get these stats is in the "pairwise_fst_v1.Rmd" file. # the function basic.stats() provides the observed heterozygosity (Ho), mean gene diversities within population (Hs), Fis, and Fst
+#basicstat <- basic.stats(Mydata2, diploid = FALSE, digits = 2)
+s1 <- read.table("~/Desktop/PhD/Symbiodinium fitti/contam_rm_080819/basicstat_bylocus.txt", header = T)
+s1.5 <- cbind(ComboID = rownames(s1), s1) # name the ID column so you can merge them
+s1 <- s1.5[,c(1,3:9,11)] # take out the stats that didn't work (Ho, Fis)
+s1$ComboID <- gsub("[:.:]", "|", s1$ComboID) # take out the "." and replace with "|" so the merge works
+s1$ComboID <- as.factor(s1$ComboID)
+s1 <- as.data.frame(s1)
+
+# this uses the diff_stats() function (from mmod package) of the genotyping gind. it is in the file gac_estimates_v2.R. 
+# By default this function calculates three different statistics of differentiation for a genetic dataset. Nei’s Gst, Hedrick’s G”st and Jost’s D
+# code  = diffstats <- diff_stats(gind)
+s2 <- read.table("~/Desktop/PhD/Symbiodinium fitti/contam_rm_080819/diffstats_bylocus_allloci_noBP.txt", header = T)
+s2.5 <- cbind(ComboID = rownames(s2), s2) # name the ID column so you can merge them
+s2.5$ComboID <- as.factor(s2.5$ComboID)
+s2 <- as.data.frame(s2.5)
+
+s3 <- base::merge(s1, s2, by = "ComboID")
+write.table(s3, file = "perSNPstats.txt", quote=F)
+
+# add in number IDs to make the merge easy
+s3$ID <- seq.int(nrow(s3))
+
+# read in the file with the annotated SNP info. this will only keep the SNP stats for the 904 selection outliers that fall in coding regions
+s4 <- read.table("~/Desktop/PhD/Symbiodinium fitti/SNP_under_selection/v_contam_rm_08082019/OUTLIERONLY_snp_annotation_cov_outlierstats.txt", header = T)
+s5 <- dplyr::inner_join(s3, s4, by ="ID")
+
+# add an avg coverage column
+s5$avg_coverage <- ((s5$COV_all)/48)
+
+# subset out columns not need (coverage for the individ samples,)
+s5.5 <- s5[,c(1:86,104)]
+names(s5.5)[names(s5.5) == "REF"] <- "C_FL_14120"
+# write out file with all SNP annot
+write.table(s5.5, file = "annot_outlier_SNPs.txt")
+
+##############################################################################################
+##### subset out the Sfitti genes of interest for iTasser. these were selected after examining the bar plots. there is one gene of iron-sulfur complex (g5998) and 3 copia proteins (g13973, g9607, g16937). was going to use g14284 and g2173 but only 1 SNP each
+##############################################################################################
+special <- dplyr::filter(s5.5, Protein_ID %in% c("Sfitti_g5998", "Sfitti_g13973", "Sfitti_g9607", "Sfitti_g16937"))
+# write this out
+write.table(special, file = "specialgenes_for_iTasser.txt")
+
+#test <- s5.5[,30:78]
+#cerv <- s5.5[,c(30,33:49)]
+ 
+# reorder stuff so the stats stuff is on top
+s5.6 <- s5.5[,c(15,1:14,87,16:29,79:86,54:61,30:53,62:78)] 
+#annoying <- s5.5[,54:61]
+
+# transposed the data for the purposes of getting nucleotide frequency by host for each SNP
+s6.5 <- as.data.frame(t(as.matrix(s5.6)))
+colnames(s6.5) <- rownames(s5.6)
+
+# add in a columns about host so you can filter by host
+s6.5$Host <- c(NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,"Hybrid", "Hybrid", "Hybrid", "Palmata", "Hybrid", "Hybrid", "Hybrid", "Hybrid","Cervicornis", "Hybrid", "Hybrid", "Cervicornis", "Cervicornis", "Cervicornis", "Cervicornis", "Cervicornis", "Cervicornis", "Cervicornis", "Cervicornis", "Cervicornis", "Cervicornis", "Cervicornis", "Cervicornis", "Cervicornis", "Cervicornis", "Cervicornis", "Cervicornis", "Cervicornis", "Hybrid", "Hybrid", "Hybrid", "Hybrid", "Hybrid", "Hybrid", "Hybrid", "Hybrid", "Hybrid", "Palmata", "Palmata", "Palmata", "Palmata", "Palmata", "Palmata", "Palmata", "Palmata", "Palmata", "Palmata", "Palmata", "Palmata")
+s6.5 <- s6.5[,c(905,1:904)]
+s6.6 <- s6.5[,1:2] # check and make sure the host order was right! # it was
+s6.5 <- as.data.frame(s6.5)
+
+# use R equivilant of excel "COUNT_IF" function to calculate nucleotide frequency
+### cerv first
+cerv <- filter(s6.5, Host %in% "Cervicornis") 
+#cA <- (((sum(cerv$`1` == 'A', na.rm=TRUE))/48)*100) # test for one column before applying to all rows.
+cerv_A <- sapply(cerv[2:905], function(x) (((sum(x == 'A', na.rm=TRUE))/18)*100))
+cerv_A <- as.data.frame(cerv_A)
+cerv_T <- sapply(cerv[2:905], function(x) (((sum(x == 'T', na.rm=TRUE))/18)*100))
+cerv_T <- as.data.frame(cerv_T)
+cerv_G <- sapply(cerv[2:905], function(x) (((sum(x == 'G', na.rm=TRUE))/18)*100))
+cerv_G <- as.data.frame(cerv_G)
+cerv_C <- sapply(cerv[2:905], function(x) (((sum(x == 'C', na.rm=TRUE))/18)*100))
+cerv_C <- as.data.frame(cerv_C)
+cerv_NA <- sapply(cerv[2:905], function(x) (((sum(x == '.', na.rm=TRUE))/18)*100))
+cerv_NA <- as.data.frame(cerv_NA)
+
+all_cerv <- cbind(cerv_A, cerv_C, cerv_G, cerv_T, cerv_NA)
+all_cerv$total_cerv <- (all_cerv$cerv_A + all_cerv$cerv_C + all_cerv$cerv_G + all_cerv$cerv_T + all_cerv$cerv_NA) # make sure math is correct and all % frequency adds up to 100
+
+### Palmata 2nd
+palm <- filter(s6.5, Host %in% "Palmata") 
+palm_A <- sapply(palm[2:905], function(x) (((sum(x == 'A', na.rm=TRUE))/13)*100))
+palm_A <- as.data.frame(palm_A)
+palm_T <- sapply(palm[2:905], function(x) (((sum(x == 'T', na.rm=TRUE))/13)*100))
+palm_T <- as.data.frame(palm_T)
+palm_G <- sapply(palm[2:905], function(x) (((sum(x == 'G', na.rm=TRUE))/13)*100))
+palm_G <- as.data.frame(palm_G)
+palm_C <- sapply(palm[2:905], function(x) (((sum(x == 'C', na.rm=TRUE))/13)*100))
+palm_C <- as.data.frame(palm_C)
+palm_NA <- sapply(palm[2:905], function(x) (((sum(x == '.', na.rm=TRUE))/13)*100))
+palm_NA <- as.data.frame(palm_NA)
+
+all_palm <- cbind(palm_A, palm_C, palm_G, palm_T, palm_NA)
+all_palm$total_palm <- (all_palm$palm_A + all_palm$palm_C + all_palm$palm_G + all_palm$palm_T + all_palm$palm_NA) # make sure math is correct and all % frequency adds up to 100
+
+### Hybrid 3rd
+hybrid <- filter(s6.5, Host %in% "Hybrid") 
+hybrid_A <- sapply(hybrid[2:905], function(x) (((sum(x == 'A', na.rm=TRUE))/18)*100))
+hybrid_A <- as.data.frame(hybrid_A)
+hybrid_T <- sapply(hybrid[2:905], function(x) (((sum(x == 'T', na.rm=TRUE))/18)*100))
+hybrid_T <- as.data.frame(hybrid_T)
+hybrid_G <- sapply(hybrid[2:905], function(x) (((sum(x == 'G', na.rm=TRUE))/18)*100))
+hybrid_G <- as.data.frame(hybrid_G)
+hybrid_C <- sapply(hybrid[2:905], function(x) (((sum(x == 'C', na.rm=TRUE))/18)*100))
+hybrid_C <- as.data.frame(hybrid_C)
+hybrid_NA <- sapply(hybrid[2:905], function(x) (((sum(x == '.', na.rm=TRUE))/18)*100))
+hybrid_NA <- as.data.frame(hybrid_NA)
+
+all_hybrid <- cbind(hybrid_A, hybrid_C, hybrid_G, hybrid_T, hybrid_NA)
+all_hybrid$total_hybrid <- (all_hybrid$hybrid_A + all_hybrid$hybrid_C + all_hybrid$hybrid_G + all_hybrid$hybrid_T + all_hybrid$hybrid_NA) # make sure math is correct and all % frequency adds up to 100
+
+# bind all of coral frequency objects
+all_freq <- cbind(all_hybrid, all_cerv, all_palm)
+# now bind them to the long version of all of the SNP data
+s7 <- cbind(all_freq, s5.6)
+# save the table with all of the info!
+write.table(s7, file = "per_SNP_outlierSTATS_freqbyHOST_allinfo_08192020.txt", quote=T)
+# subset out the nucleotide info for each sample
+s8 <- s7[,1:56]
+
+### For the faceting/stacked bar graphs to work properly, need to melt, filter multiple times and add in host/nucleotide tags so that frequency and nucleotide are their own columns
+s9 <- melt(s8, measure.vars = c("palm_A", "palm_C", "palm_T", "palm_G", "palm_NA", "cerv_A", "cerv_C", "cerv_T", "cerv_G", "cerv_NA", "hybrid_A", "hybrid_C", "hybrid_T", "hybrid_G", "hybrid_NA"), id.vars = c("ID","ComboID", "Hs.x", "Ht.x", "Dst","Htp", "Dstp", "Fst", "Fstp", "Dest", "Hs.y", "Ht.y", "Gst", "Gprime_st", "D", "Protein_ID", "site", "Swiss.Prot_Hit", "SP_E.value", "Swiss.Prot_Description", "Trembl_Hit", "TB_E.value", "Trembl_Description", "NCBI_hit", "nr_E.value", "NCBI_Description","start.x", "stop.x", "POS", "BAYES_prob", "BAYES_log10.PO.", "BAYES_qval", "BAYES_alpha", "BAYES_fst", "Bayescan_Outlier_Type", "PCA.p.val", "PCA.q.val", "avg_coverage"))
+# rename value (frequency) column
+names(s9)[names(s9) == "value"] <- "Frequency"
+## making the host and nucleotide columns ready for looping by duplicating and then separating host/nucleotide info (ex "Palm_A" to "Palm" and "A")
+# duplicate variable column
+s9$Nucleotide = s9$variable
+names(s9)[names(s9) == "variable"] <- "Host"
+# remove host info from nucleotide column
+# useful resource on gsub() function: http://www.endmemo.com/program/R/gsub.php 
+s9$Nucleotide <- gsub("hybrid_", "", s9$Nucleotide)
+s9$Nucleotide <- gsub("palm_", "", s9$Nucleotide)
+s9$Nucleotide <- gsub("cerv_", "", s9$Nucleotide)
+s9$Nucleotide <- as.factor(s9$Nucleotide) # check and make sure that A/T/C/G/NA are the 5 factors
+levels(s9$Nucleotide)
+# remove the nucleotide info from the host column
+s9$Host <- gsub("_A", "", s9$Host)
+s9$Host <- gsub("_T", "", s9$Host)
+s9$Host <- gsub("_C", "", s9$Host)
+s9$Host <- gsub("_G", "", s9$Host)
+s9$Host <- gsub("_NA", "", s9$Host)
+s9$Host <- as.factor(s9$Host) # check and make sure that host spp are factors
+levels(s9$Host)
+
+# round the coverage to 1 decimal
+s9$avg_coverage <- round(s9$avg_coverage, 1)
+# round PCAdapt qvals to 4 decimals
+s9$PCA.q.val <- round(s9$PCA.q.val, 4)
+
+# sort the dataframe by NCBI Description (will help sorting through proteins of interest easier when perusing the HTML output)
+
+# write out the table
+write.table(s9, file = "nucleotide_freq_by_host.txt")
+
+
+```
+
+
