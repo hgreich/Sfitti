@@ -5,6 +5,8 @@ date: "August 20, 2019"
 output: html_document
 ---
 
+# This is for table S4!
+
 ```{r}
 ####
 # this script was updated again on aug 20 2019 after removing a small subset of contaminated snps.
