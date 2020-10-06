@@ -5,6 +5,8 @@ date: "06/15/2020"
 output: html_document
 ---
 
+this is for table S1
+
 Script adapted from SAK, HannR update, objective: get table of MLGs for different thresholds (.1, .11, .15, .2) for the different SNP sets (high quality ~58,000; conservative no missing ~6,000)
 
 Load Packages:
