@@ -88,11 +88,11 @@ count(markers_p)
 
 markers_b <- subset(bysite_b, POS>start & POS<stop)
 count(markers_b)
-### 17/370 bayescan snps under selection are in coding regions
+### 19/370 bayescan snps under selection are in coding regions
 
 markers_o <- subset(bysite_o, POS>start & POS<stop)
 count(markers_o)
-### 12/307 overlap snps under selection are in coding regions
+### 14/339 overlap snps under selection are in coding regions
 
 # pair in the coverage data
 #cov<- merge(markers, genecov, by = "Protein_ID")
