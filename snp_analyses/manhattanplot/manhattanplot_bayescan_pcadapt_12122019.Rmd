@@ -5,6 +5,8 @@ date: "12/12/2019"
 output: html_document
 ---
 
+# This is for fig5
+
 ```{r warning=FALSE, message=FALSE}
 # dec 12 2019
 # attempting to make a better manhattan plot that combines results from bayescan and pcadapt
