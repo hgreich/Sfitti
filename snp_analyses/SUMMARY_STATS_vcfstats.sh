@@ -8,6 +8,8 @@
 
 #PBS -j oe
 
+# THIS IS FOR TABLE S1
+
 ###########
 # updated 08/08/2019, script created sept 28 2018
 ### run vcf stats on the new SNP analysis with all of the samples
