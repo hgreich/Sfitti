@@ -1,9 +1,12 @@
 ---
-title: "structure_contamrm_dec172019"
+title: "structure"
 author: "Hannah Reich"
 date: "12/17/2019"
 output: html_document
 ---
+
+
+#20210316 - server structure and other structure files here https://github.com/hgreich/Sfitti/tree/master/snp_analyses/structure
 
 ```{r}
 # dec 17 2019
