@@ -1,0 +1,226 @@
+---
+title: "20210213_snp_subsets_pca"
+author: "Hannah Reich"
+date: "2/13/2021"
+output: html_document
+---
+
+
+SNPS UNDER SELECTION SUBSET
+```{r}
+# feb 13, 2021
+# this script to to make PCAs of the snps under selection
+
+setwd("~/Desktop/PhD/Symbiodinium fitti/SNP_under_selection/v_contam_rm_08082019/2021_mec_R1/")
+
+library(vcfR)
+library(adegenet)
+library(poppr)
+library(pcadapt)
+library(ggplot2)
+library(farver)
+
+# import the vcf
+sel_vcf <- read.vcfR("~/Desktop/PhD/Symbiodinium fitti/SNP_under_selection/v_contam_rm_08082019/2021_mec_R1/20210213_snp_under_sel_SUBSET.recode.vcf")
+
+# add in pop (this has hostXloc so eventually you can split them up)
+poptab <- read.table("~/Desktop/PhD/Symbiodinium fitti/contam_rm_080819/poptab_noBP.txt", header = T)
+
+# create gind
+gind <- vcfR2genind(sel_vcf)
+ploidy(gind) <- as.integer(1)
+gind@pop <- as.factor(poptab$host)
+
+strata(gind) <- data.frame(poptab[,1:2]) # this adds in host and location as an identifier. can add in multiple variables
+
+genind_clone <-as.genclone(gind)
+genind_clone
+
+### ade genet
+x<- tab(genind_clone, freq=TRUE, NA.method = "mean")
+pca <- dudi.pca(x, center=TRUE, scale=FALSE, scannf= FALSE, nf = 5)
+df1 <- data.frame(Species = poptab[,1], Loc = poptab[,2], ID = poptab[,3], pca = pca$li)
+df2 <- data.frame(AlleleLoadings = pca$c1)
+eig <- data.frame(Eigenvalue = pca$eig)
+
+s.class(pca$li, fac=pop(genind_clone), col=transp(funky(3),.6))
+add.scatter.eig(pca$eig[1:10],3,1,2, ratio=.3)
+
+eig.perc <- 100*pca$eig/sum(pca$eig)
+head(eig.perc)
+
+X <- tab(genind_clone, freq=TRUE, NA.method="asis")
+pco <- dudi.pco(dist(X), scannf=FALSE, nf=3)
+cor(pca$li, pco$li)^2
+df3 <- data.frame(Species = poptab[,1], Loc = poptab[,2], ID = poptab[,3], pco = pco$li)
+df4 <- data.frame(AlleleLoadings = pco$c1)
+eig2 <- data.frame(Eigenvalue = pco$eig)
+
+s.class(pco$li, fac=pop(genind_clone), col=transp(funky(3),.6))
+add.scatter.eig(pco$eig[1:10],3,1,2, ratio=.3)
+
+eig.perc.pco <- 100*pco$eig/sum(pco$eig)
+head(eig.perc.pco)
+
+## pcadapt
+
+# import the vcf file
+path <- "~/Desktop/PhD/Symbiodinium fitti/SNP_under_selection/v_contam_rm_08082019/2021_mec_R1/20210213_snp_under_sel_SUBSET.recode.vcf"
+vcf <- read.pcadapt(path, type = "vcf", type.out = "matrix", ploidy = 1)
+
+# run pcadapt, test up to 20 clusters/pops
+acp <- pcadapt(input = vcf, K = 5)
+
+# Screeplot displays in decreasing order the percentage of variance explained by each PC
+#plot(acp, option = "screeplot",  K = 5)
+
+#displays the PCA results colored by collection regions
+pca2 <- plot(acp, option = "scores", gg.col=transp(cols, 1.0)) 
+
+summary(acp)
+# spit out % variance
+acp$singular.values
+
+# wrangle into a new dataframe
+df1 <- data.frame(Species = poptab[,1], Loc = poptab[,2], ID = poptab[,3], pca = pca2$data)
+all_pca <- as.data.frame(df1)
+
+cols <- c("C" = "#000000", "H" = "#999999", "P" = "#0072B2")
+# back up shapes: 0,1,2,3,8
+
+f <- ggplot(all_pca) + 
+  geom_point(aes(all_pca$pca.PC_i, all_pca$pca.PC_j,
+               color = all_pca$Species,
+               fill = all_pca$Species,
+               shape = all_pca$Loc), 
+               size = 4, 
+               alpha = 0.85) +
+  theme_bw() +
+  theme(legend.position = "right",
+        axis.title = element_text(face = "bold", size = 14),
+        plot.title = element_text(face = "bold"),
+        legend.title = element_text(face = "bold"),
+        panel.grid = element_blank(),
+        axis.text.x = element_blank(),
+  axis.text.y = element_blank()) +
+  scale_fill_manual(values = cols, 
+                     breaks = c("C", "H", "P"),
+                     labels = c("Acropora cervicornis", "Hybrid", "Acropora palmata"),
+                     name = "S. 'fitti' host") +
+    scale_color_manual(values = cols, 
+                     breaks = c("C", "H", "P"),
+                     labels = c("Acropora cervicornis", "Hybrid", "Acropora palmata"),
+                     name = "S. 'fitti' host") +
+  stat_ellipse(geom = "polygon", type = "t", alpha = 0.25, aes(all_pca$pca.PC_i, all_pca$pca.PC_j, fill= Species), show.legend = FALSE) + scale_fill_manual(values=cols) + # ellipses assumes multivariate distribution using default confidence level (0.95)
+  scale_shape_manual(values = c(25,16,17,15,23), breaks = c("BA", "BE", "CU", "FL", "VI"), labels = c("Bahamas", "Belize", "Curacao", "Florida", "USVI"), name = "Location") +
+  labs(title = "5,067 S. 'fitti' SNPs under selection", x="PC1 (23.3% variance)", y="PC2 (22.0% variance)")
+f
+
+save_plot("~/Desktop/PhD/chapters/chapter 3 - fitti/Figx_pca_sel_outlier_snps.pdf", f, base_aspect_ratio = 1.6)
+
+```
+
+GENE REGION SNPS SUBSET
+```{r}
+
+rm(list=ls())
+
+# import the vcf
+gen_vcf <- read.vcfR("~/Desktop/PhD/Symbiodinium fitti/SNP_under_selection/v_contam_rm_08082019/2021_mec_R1/20210213_gene_snps_SUBSET.recode.vcf")
+
+# add in pop (this has hostXloc so eventually you can split them up)
+poptab <- read.table("~/Desktop/PhD/Symbiodinium fitti/contam_rm_080819/poptab_noBP.txt", header = T)
+
+# create gind
+gind <- vcfR2genind(gen_vcf)
+ploidy(gind) <- as.integer(1)
+gind@pop <- as.factor(poptab$host)
+
+strata(gind) <- data.frame(poptab[,1:2]) # this adds in host and location as an identifier. can add in multiple variables
+
+genind_clone <-as.genclone(gind)
+genind_clone
+
+### ade genet
+x<- tab(genind_clone, freq=TRUE, NA.method = "mean")
+pca <- dudi.pca(x, center=TRUE, scale=FALSE, scannf= FALSE, nf = 5)
+df1 <- data.frame(Species = poptab[,1], Loc = poptab[,2], ID = poptab[,3], pca = pca$li)
+df2 <- data.frame(AlleleLoadings = pca$c1)
+eig <- data.frame(Eigenvalue = pca$eig)
+
+s.class(pca$li, fac=pop(genind_clone), col=transp(funky(3),.6))
+add.scatter.eig(pca$eig[1:10],3,1,2, ratio=.3)
+
+eig.perc <- 100*pca$eig/sum(pca$eig)
+head(eig.perc)
+
+X <- tab(genind_clone, freq=TRUE, NA.method="asis")
+pco <- dudi.pco(dist(X), scannf=FALSE, nf=3)
+cor(pca$li, pco$li)^2
+df3 <- data.frame(Species = poptab[,1], Loc = poptab[,2], ID = poptab[,3], pco = pco$li)
+df4 <- data.frame(AlleleLoadings = pco$c1)
+eig2 <- data.frame(Eigenvalue = pco$eig)
+
+s.class(pco$li, fac=pop(genind_clone), col=transp(funky(3),.6))
+add.scatter.eig(pco$eig[1:10],3,1,2, ratio=.3)
+
+eig.perc.pco <- 100*pco$eig/sum(pco$eig)
+head(eig.perc.pco)
+
+## pcadapt
+
+# import the vcf file
+path <- "~/Desktop/PhD/Symbiodinium fitti/SNP_under_selection/v_contam_rm_08082019/2021_mec_R1/20210213_gene_snps_SUBSET.recode.vcf"
+vcf <- read.pcadapt(path, type = "vcf", type.out = "matrix", ploidy = 1)
+
+# run pcadapt, test up to 20 clusters/pops
+acp <- pcadapt(input = vcf, K = 5)
+
+# Screeplot displays in decreasing order the percentage of variance explained by each PC
+plot(acp, option = "screeplot",  K = 5)
+
+#displays the PCA results colored by collection regions
+ pca2 <- plot(acp, option = "scores", gg.col=transp(cols, 1.0)) + geom_point(aes(color=poptab$host))
+
+summary(acp)
+# spit out % variance
+acp$singular.values
+
+# wrangle into a new dataframe
+df1 <- data.frame(Species = poptab[,1], Loc = poptab[,2], ID = poptab[,3], pca = pca2$data)
+all_pca <- as.data.frame(df1)
+
+cols <- c("C" = "#000000", "H" = "#999999", "P" = "#0072B2")
+# back up shapes: 0,1,2,3,8
+
+f <- ggplot(all_pca) + 
+  geom_point(aes(all_pca$pca.PC_i, all_pca$pca.PC_j,
+               color = all_pca$Species, 
+               fill = all_pca$Species,
+               shape = all_pca$Loc), 
+               size = 4, 
+               alpha = 0.85) +
+  theme_bw() +
+  theme(legend.position = "right",
+        axis.title = element_text(face = "bold", size = 14),
+        plot.title = element_text(face = "bold"),
+        legend.title = element_text(face = "bold"),
+        panel.grid = element_blank(),
+        axis.text.x = element_blank(),
+  axis.text.y = element_blank()) +
+      scale_fill_manual(values = cols, 
+                     breaks = c("C", "H", "P"),
+                     labels = c("Acropora cervicornis", "Hybrid", "Acropora palmata"),
+                     name = "S. 'fitti' host") +
+  scale_color_manual(values = cols, 
+                     breaks = c("C", "H", "P"),
+                     labels = c("Acropora cervicornis", "Hybrid", "Acropora palmata"),
+                     name = "S. 'fitti' host") +
+    stat_ellipse(geom = "polygon", type = "t", alpha = 0.25, aes(all_pca$pca.PC_i, all_pca$pca.PC_j, fill= Species), show.legend = FALSE) + scale_fill_manual(values=cols) + # ellipses assumes multivariate distribution using default confidence level (0.95)
+  scale_shape_manual(values = c(25,16,17,15,23), breaks = c("BA", "BE", "CU", "FL", "VI"), labels = c("Bahamas", "Belize", "Curacao", "Florida", "USVI"), name = "Location") +
+  labs(title = "16,536 S. 'fitti' gene region SNPs", x="PC1 (15.5% variance)", y="PC2 (12.9% variance)")
+f
+
+save_plot("~/Desktop/PhD/chapters/chapter 3 - fitti/Figx_pca_gene_region.pdf", f, base_aspect_ratio = 1.6)
+```
+
