@@ -1,0 +1,87 @@
+---
+title: "snpeff_v3"
+author: "Hannah Reich"
+date: "February 28, 2021"
+output: html_document
+---
+
+```{r}
+# 20210228, SNP eff for tables S9 and S10
+
+rm(list=ls())
+
+
+# load packages
+library(tidyverse)
+library(vcfR)
+library(dplyr)
+library(cowplot)
+library(readxl)
+library(stringr)
+
+# set the working directory
+setwd("~/Desktop/PhD/Symbiodinium fitti/snp_eff/20210213_new_genebed/")
+
+# see if the vcf loads
+vcf <- read.vcfR("~/Desktop/PhD/Symbiodinium fitti/snp_eff/20210213_new_genebed/2021_snpeff.vcf")
+
+# make it into a tidy dataframe
+dat <- vcfR2tidy(vcf)
+
+# make the tidy vcf dataframe useful for comparing snps in coding regions
+df <- dat[["fix"]]
+
+# only keep columns with info
+df1 <- df[,c(1:3,5:9,26)]
+
+#### copied the lines of code for pairing annotation with vcf info from the filemerge Rmd file
+
+# create file that combines bed file info (scaffold, start, stop, and protein ID) with protein ID from annotation file
+annotation <- read.csv("~/Desktop/PhD/Symbiodinium fitti/blast reports/2021_genome_annotation/20210228_sfitti_genome_annotation.csv", header = T)
+genebed <- read.table("~/Desktop/PhD/Symbiodinium fitti/blast reports/2021_genome_annotation/2021_sfitti_annotation_bed", header = T)
+
+info <- merge(annotation, genebed, by.x = "Protein_ID", by.y = "names")
+
+# add in ID tab for merging
+
+
+bysite <- merge(info, df1, by.x = "scaffold", by.y = "CHROM")
+count(bysite)
+
+# find the markers where start < position < stop
+all <- subset(bysite, POS>start & POS<stop)
+count(all)
+
+write.table(all, "20210228_table_S9_coding_region_snps_withSNPEFF.txt")
+
+# count SNPs for NCBI description
+all$NCBI_Description <- as.factor(all$NCBI_Description)
+length(unique(all$NCBI_Description)) # 516 NCBI descriptions
+
+# read in outlier stats
+genesnps <- read.table("~/Desktop/PhD/Symbiodinium fitti/blast reports/2021_genome_annotation/20210228_table_S4_gene_region_snps", header=T)
+# only keep useful info
+genesnps <- genesnps[,c(1:2,4:15,17:69)]
+
+# add in selection outlier table
+outlier <- read.table("~/Desktop/PhD/Symbiodinium fitti/SNP_under_selection/v_contam_rm_08082019/2021_mec_R1/20210213_snp_under_sel_methods_OVERLAP.txt")
+
+meow <- merge(genesnps, outlier, by.x = "ID.y", by.y = "ID")
+
+# modify "all" object
+all <- read.table("20210228_table_S9_coding_region_snps_withSNPEFF.txt")
+all1 <- all[,c(1:2,17,18,20,26)]
+
+# merge snp eff with outlier stats info
+# this table has duplicates because of the different annotations for different samples
+test1 <- merge(meow, all1, by = "scaffold")
+everything2 <- subset(test1, POS.y > start.y & POS.y < stop.y)
+# only keep the selection outliers
+everything2$Bayescan_Outlier_Type <- as.factor(everything2$Bayescan_Outlier_Type)
+subset1 <- everything2 %>% filter(!is.na(Bayescan_Outlier_Type) & !is.na(PCA.p.val))
+# write out the table
+write.table(subset1, "20210228_table_S10_snpeff_sharedoutlier_annot.txt")
+
+
+
+```
