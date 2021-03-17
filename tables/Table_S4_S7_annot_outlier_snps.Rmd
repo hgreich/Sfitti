@@ -5,6 +5,10 @@ date: "2/13/2021"
 output: html_document
 ---
 
+Table S4 writes table of gene region SNPs (line 144)
+Table S7 writes table of outlier snps (line37)
+
+
 ```{r}
 #### file purpose & history:
 # this script is for merging the snps under selection file to the vcf file and to the annotations file
@@ -161,14 +165,6 @@ symdb <- genesnps[,13]
 symdb <- as.data.frame(symdb)
 symdb2 <- na.omit(symdb)
 # 14,448 matched to different Symbiodiniaceae genomes
-
-
-# make one that doesnt
-markers <-merge(markersv3, all_outliers, by="ID")
-markersv2 <- subset(markers, POS>start & POS<stop)
-# pair in the coverage data
-cov<- merge(markersv2, genecov, by = "Protein_ID")
-write.table(cov, "20210213_OUTLIERONLY_snp_annotation_cov_outlierstats.txt")
 
 
 # NUMBER (no contam) snps in coding region. NUMBER% match to symbiodinium
