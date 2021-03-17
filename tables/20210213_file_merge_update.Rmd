@@ -1,0 +1,177 @@
+---
+title: "20210213_file_merge"
+author: "Hannah Reich"
+date: "2/13/2021"
+output: html_document
+---
+
+```{r}
+#### file purpose & history:
+# this script is for merging the snps under selection file to the vcf file and to the annotations file
+# script first started on October 11 2018
+# this script was updated on halloween 2018 for the mm80 redo
+# this script was updated again on aug 20 2019 after removing a small subset of contaminated snps.
+# this script was updated 20210213 with the new gene predictions per request of reviewer 1
+# updated feb 22 2019 with processed bayescan results
+
+# set the working directory
+setwd("~/Desktop/PhD/Symbiodinium fitti/SNP_under_selection/v_contam_rm_08082019/2021_mec_R1/")
+
+library(dplyr)
+library(tidyverse)
+
+# load the data with SNP ID and selection stats
+sp <- read.table("~/Desktop/PhD/Symbiodinium fitti/SNP_under_selection/v_contam_rm_08082019/outliersONLY_PCADAPT.txt")
+#sb <- read.table("alloutlier_BAYESCAN_stats.txt") # not using this one, using clean version
+sb <- read.table("~/Desktop/PhD/Symbiodinium fitti/SNP_under_selection/v_contam_rm_08082019/bayescan_outliers_clean.txt")
+# rename column
+names(sb)[7] <- "Bayescan_Outlier_Type"
+
+# find outlier overlap with bayescan data
+# > merge(a,b, by.x = "c1", by.y = "a")
+overlap <- merge(sb, sp, by = "ID")
+
+### save the overlap table!!!
+write.table(overlap, "20210213_snp_under_sel_methods_OVERLAP.txt", sep = "\t")
+
+# load the tab table of the VCF
+# vcf to tab notes:
+  # do this on server
+  #1 export PERL5LIB=/gpfs/group/ibb3/default/tools/vcftools-vcftools-ea875e2/src/perl/
+  # 2 /gpfs/group/ibb3/default/tools/vcftools-vcftools-ea875e2/src/perl/vcf-to-tab <  hq_nocontam_rename_aug19.vcf > rename.tab
+  # remove the / from the file
+  # sed 's/[/]//g' rename.tab > rename_clean.tab
+snps <- read.table("~/Desktop/PhD/Symbiodinium fitti/SNP_under_selection/v_contam_rm_08082019/rename_clean.tab", header = T)
+
+# add an "ID" column to the vcf 
+snps$ID <- seq.int(nrow(snps))
+
+# merge the snps and selection stats by "ID"
+# this is for pcadapt
+snp_p <- merge(snps, sp, by = "ID")
+count(snp_p) # this is the number of PCAdapt snps under selection (4,987 out of 58,537)
+
+# this is for bayescan
+snp_b <- merge(snps, sb, by = "ID")
+count(snp_b) # this is the number of bayescan snps under selection (419 out of 58,537)
+
+# this is for overlap between pcadapt and bayescan
+snp_o <- merge(snps, overlap, by = "ID")
+count(snp_o) # this is the number of overlap between bayescan & PCAdapt snps under selection (339 out of 58,537)
+
+## pull out info (snp id, scaffold, position) for bed file of snps under selection
+both_out <- full_join(sb, sp, by="ID")
+bo_ids <- both_out[,6]
+bo_ids <- as.data.frame(bo_ids)
+nodups <- unique(bo_ids)
+kaboom <- merge(nodups, snps, by.x = "bo_ids", by.y = "ID")
+
+# bed file setup
+bed1 <- kaboom[,2:3]
+bed1$min1 <- (bed1$POS - 1)
+bed1$plus1 <- (bed1$POS + 1)
+bed2 <- bed1[,c(1,3,4)]
+write_csv(bed2, "20210213_snps_undersel_BED.csv")
+
+####### pairing vcf file with annotation file#
+# downloaded sfitti_genes.bed file from augustus folder in server
+# deleted useless columns in excel
+
+# create file that combines bed file info (scaffold, start, stop, and protein ID) with protein ID from annotation file
+ annotation <- read.csv("~/Desktop/PhD/Symbiodinium fitti/blast reports/2021_genome_annotation/20210228_sfitti_genome_annotation.csv", header = T)
+genebed <- read.table("~/Desktop/PhD/Symbiodinium fitti/blast reports/2021_genome_annotation/2021_Sfitti_EVM_all_gff3.bed", header = T)
+# keep genes only
+geneonlybed <- dplyr::filter(genebed, category == "gene")
+gob2 <- geneonlybed[,1:3]
+gob2$ID <- seq.int(nrow(gob2))
+
+namez = read.table ('~/Desktop/PhD/Symbiodinium fitti/blast reports/2021_genome_annotation/gene_names.txt')
+names <- gsub('evm.TU.', 'Sfitti_evm.model.', namez$V1)
+names <- as.data.frame(names)
+names$ID <- seq.int(nrow(names))
+
+geneidz <- merge(names, gob2, by = "ID")
+write.table(geneidz, "~/Desktop/PhD/Symbiodinium fitti/blast reports/2021_genome_annotation/2021_sfitti_annotation_bed")
+
+info <- merge(annotation, geneidz, by.x = "Protein_ID", by.y =  "names")
+
+# first merge all annotation info and snps under sel by site/ chrom for pcadapt, bayescan, and overlap 
+# 20210213 switched merge to geneonlybed#geneonlybed$scaffold <- as.factor(geneonlybed$scaffold)
+
+bysite_p <- merge(info, snp_p, by.x = "scaffold", by.y = "CHROM")
+bysite_b <- merge(info, snp_b, by.x = "scaffold", by.y = "CHROM")
+bysite_o <- merge(info, snp_o, by.x = "scaffold", by.y = "CHROM")
+
+# get the counts
+count(bysite_p)
+count(bysite_b)
+count(bysite_o)
+
+# make the dataframe
+bysite_b <- as.data.frame(bysite_b)
+bysite_p <- as.data.frame(bysite_p)
+bysite_o <- as.data.frame(bysite_o)
+
+# find the markers where start < position < stop
+# for bayescan, pcadapt, and overlap
+
+markers_p <- subset(bysite_p, POS>start & POS<stop)
+count(markers_p)
+### 1,453/4,987 pcadapt snps under selection are in coding regions
+
+markers_b <- subset(bysite_b, POS>start & POS<stop)
+count(markers_b)
+### 74/370 bayescan snps under selection are in coding regions
+
+markers_o <- subset(bysite_o, POS>start & POS<stop)
+count(markers_o)
+### 65/307 overlap snps under selection are in coding regions
+
+### find the number of mm80 snps in coding regions
+## make files that only have "selection outlier snps" in coding regions and one for all snps
+all_outliers <- full_join(sb, sp, by="ID")
+write.table(all_outliers, "20210213_all_outliers_stats.txt")
+
+# first merge all annotation info and snps by site/ chrom
+bysite2 <- merge(info, snps, by.x = "scaffold", by.y = "CHROM")
+count(bysite2)
+bysite <- as.data.frame(bysite2)
+genesnps <- subset(bysite, POS>start & POS<stop)
+write.table(genesnps, "~/Desktop/PhD/Symbiodinium fitti/blast reports/2021_genome_annotation/20210228_table_S4_gene_region_snps")
+
+# make version with outlier stats that includes NAs
+all_markers <- full_join(genesnps, all_outliers, by.x = "X", by.y= "ID")
+markersv3 <- subset(all_markers, POS>start & POS<stop)
+
+# make bed file to subset gene region snps on the server
+bed_gene <- markersv3[,c(1,7)]
+bed_gene$min1 <- (bed_gene$POS - 1)
+bed_gene$plus1 <- (bed_gene$POS + 1)
+bed_gene2 <- bed_gene[,c(1,3,4)]
+write_csv(bed_gene2, "20210213_gene_region_snps_BED.csv")
+
+# figure out how many map to symbiodinium
+sym1 <- genesnps %>% 
+  filter_all(any_vars(str_detect(., pattern = "Symbio")))
+count(sym1)
+# 13,318/16,536 gene region snps match to something with string symbio
+
+# see how many gene region snps map to symbio db
+symdb <- genesnps[,13]
+symdb <- as.data.frame(symdb)
+symdb2 <- na.omit(symdb)
+# 14,448 matched to different Symbiodiniaceae genomes
+
+
+# make one that doesnt
+markers <-merge(markersv3, all_outliers, by="ID")
+markersv2 <- subset(markers, POS>start & POS<stop)
+# pair in the coverage data
+cov<- merge(markersv2, genecov, by = "Protein_ID")
+write.table(cov, "20210213_OUTLIERONLY_snp_annotation_cov_outlierstats.txt")
+
+
+# NUMBER (no contam) snps in coding region. NUMBER% match to symbiodinium
+# 16,536 SNPs in coding region. x% match to symbiodinium
+
+```
