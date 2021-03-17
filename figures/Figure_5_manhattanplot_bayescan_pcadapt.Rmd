@@ -132,40 +132,6 @@ qv1
 
 save_plot("~/Desktop/PhD/chapters/chapter 3 - fitti/figs_06122020/facelifted_figs/Fig_5_manhattanplot_total.pdf", qv1, base_aspect_ratio = 1.6)
 
-qv <- ggplot(outliers, aes(x=ID, y=-log10(PCA.q.val))) +
-  geom_point(alpha=0.8, color = "#999999", size=2) +
-  geom_point(data=subset(outliers, PCA_outlier=="TRUE"), mapping=aes(color = "blue"), size = 0.9, alpha = 0.4) +
-    geom_point(data=subset(outliers, BAYES_outlier=="TRUE"), mapping=aes(color="red"), size=0.9, alpha = 0.4) +
-  #  geom_point(data=subset(outliers, BAYES_outlier=="TRUE" & PCA_outlier=="TRUE"), mapping=aes(color="#D55E00"), size=0.8) +
-  theme_bw() +
-  labs(x="SNP ID #", y="-log10(q-value)") +
-  theme(legend.position = "bottom",
-        axis.text = element_text(size=12),
-        axis.title = element_text(size=14, face = "bold"),
-        legend.text = element_text(size=10),
-        legend.title = element_text(size=12, face = "bold")) +
-  scale_colour_manual(values = c("blue", "red"),
-                      labels = c("PCAdapt", "BayeScan"), name = c("Outlier Type")) 
-qv
-
-qv_zoom <- qv +
-  ylim(0,2) +
-  theme(legend.position = "none",
-        axis.title=element_blank(),
-        axis.text.x=element_blank(),
-        axis.ticks.x=element_blank(),
-        plot.background = element_blank()) 
-qv_zoom
-
-# put the zoomed in part in the top right
-total <- ggdraw() +
-  draw_plot(qv) +
-  draw_plot(qv_zoom, x=.75, y=.77, width = .25, height = .23)
-total
-
-#ggsave("manhattanplot_total.png", total)
-#ggsave("~/Desktop/PhD/chapters/chapter 3 - fitti/figs_06122020/facelifted_figs/Fig_5_manhattanplot_total.pdf", total, height = 5, width = 8, units = "in")
-
 
 ```
 
