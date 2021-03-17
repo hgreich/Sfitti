@@ -1,0 +1,70 @@
+---
+title: "20210213_snp_enviroinfo_pcas"
+author: "Hannah Reich"
+date: "2/13/2021"
+output: html_document
+---
+
+```{r}
+
+rm(list=ls())
+
+# Feb 13, 2021
+# Reviewer 3 asked if adding in environmental information (depth)
+# Running PCAs
+
+
+library(dplyr)
+library(tidyverse)
+library(cowplot)
+library(pcadapt)
+library(vcfR)
+
+path <- "~/Desktop/PhD/Symbiodinium fitti/contam_rm_080819/hq_nocontam_rename_aug19.vcf"
+vcf <- read.pcadapt(path, type = "vcf", type.out = "matrix", ploidy = 1)
+
+# updated poptab with enviro info from sheila
+poptab <- read.csv("~/Desktop/PhD/Symbiodinium fitti/contam_rm_080819/2021_mec_R1/2021_poptab_noBP_enviro_info.csv", header = T)
+
+# make a subsetted vcf (removes NAs, aka samples without depth data)
+sub <- vcf[,c(1:8,14:25,31:33,35:37)]
+sub1 <- read.pcadapt(sub)
+
+# run pcadapt
+acp2 <- pcadapt(input = sub1, K = 5)
+
+summary(acp)
+pca2 <- plot(acp2, option = "scores", gg.col=transp(cols, 1.0))
+
+# spit out % variance
+acp2$singular.values
+
+# wrangle into a new dataframe
+df1 <- data.frame(Species = poptab[,1], Loc = poptab[,2], ID = poptab[,3], pca = pca2$data, Sample_Type = poptab[,5], Depth = poptab[,6], Detail_Benthic = poptab[,7], Benthic_Abbrev = poptab[,8], Apalm_Abundance = poptab[,9], Hybrid_Abudance = poptab[,10], Acerv_Abundance = poptab[,11])
+
+all_pca <- as.data.frame(df1)
+
+cols <- c("C" = "#000000", "H" = "#999999", "P" = "#0072B2")
+# back up shapes: 0,1,2,3,8
+
+### depth pca
+depth_na <- ggplot(all_pca) + 
+  geom_point(aes(all_pca$pca.PC_i, all_pca$pca.PC_j,
+               color = all_pca$Depth,
+               size = all_pca$Depth,
+               shape = all_pca$Species), 
+               alpha = 0.9) +
+  theme_bw() +
+  theme(legend.position = "right",
+        axis.title = element_text(face = "bold", size = 14),
+        plot.title = element_text(face = "bold"),
+        legend.title = element_text(face = "bold"),
+        panel.grid = element_blank()) +
+  scale_color_gradient(low = "light green", high = "navy") +
+  labs(title = "PCA by depth - na.rm",x="PC1 (52.7% variance)", y="PC2 (30.4% variance)")
+depth_na
+save_plot("~/Desktop/PhD/chapters/chapter 3 - fitti/Fig_S6_pca_DEPTH.pdf", depth_na, base_aspect_ratio = 1.6)
+
+
+```
+
