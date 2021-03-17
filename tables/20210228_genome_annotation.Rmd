@@ -1,0 +1,80 @@
+---
+title: "combineblast"
+author: "Hannah Reich"
+date: "Feb 28, 2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+ 
+rm(list=ls())
+
+
+# 20210228 compile genome annotation.
+
+library(dplyr)
+library(scales)
+library(stringr)
+library(tidyverse)
+
+setwd("~/Desktop/PhD/Symbiodinium fitti/blast reports/2021_genome_annotation/")
+
+# for extracting gene names from a gff3 file https://biowize.wordpress.com/2012/06/15/command-line-magic-for-your-gene-annotations/
+
+namez = read.table ('gene_names.txt')
+names <- gsub('evm.TU.', 'Sfitti_evm.model.', namez$V1)
+names <- as.data.frame(names)
+names(names)[1] <- "V1"
+
+unip = read.table('uniprot/sfitti_uniprot_all.out', header=FALSE, sep = "\t",quote = "")
+tmbl= read.table('trembl/sfitti_trembl_all.out', header=FALSE, sep = "\t", quote = "")
+ncbi = read.table('ncbi/sfit_ncbi_all.out', header=FALSE, sep = "\t", quote = "")
+syms = read.table ('symbio_database/all_sym_blast.out', sep = "\t", quote = "")
+
+# rename columns
+#colnames(unip) <- c("sfitti_gene", "uniprot_hit", "pident", "length", "mismatch", "gapopen", "fitti_start", "fitti_stop", "sstart", "send", "evalue", "bitscore", "uniprot_annot")
+#colnames(tmbl) <- c("sfitti_gene", "tmbl_hit", "pident", "length", "mismatch", "gapopen", "fitti_start", "fitti_stop", "sstart", "send", "evalue", "bitscore", "tmbl_annot")
+#colnames(ncbi) <- c("sfitti_gene", "ncbi_hit", "pident", "length", "mismatch", "gapopen", "fitti_start", "fitti_stop", "sstart", "send", "evalue", "bitscore", "ncbi_annot")
+#colnames(syms) <- c("sfitti_gene", "sym_db_hit", "pident", "length", "mismatch", "gapopen", "fitti_start", "fitti_stop", "sstart", "send", "evalue", "bitscore", "sym_db_annot")
+
+# filter sfitti gene by evalue
+unip_fil <- unip %>% group_by(V1) %>% filter(V11 == min(V11))%>%
+  filter(V3 == max(V3))
+unip_fil_nodups <- unip_fil %>% distinct(V1, .keep_all = TRUE)
+
+tmbl_fil <- tmbl %>% group_by(V1) %>% filter(V11 == min(V11)) %>%
+  filter(V3 == max(V3))
+tmbl_fil_nodups <- tmbl_fil %>% distinct(V1, .keep_all = TRUE)
+
+ncbi_fil <- ncbi %>% group_by(V1) %>% filter(V11 == min(V11)) %>%
+  filter(V3 == max(V3))
+ncbi_fil_nodups <- ncbi_fil %>% distinct(V1, .keep_all = TRUE)
+
+syms_fil <- syms %>% group_by(V1) %>% filter(V11 == min(V11)) %>%
+  filter(V3 == max(V3))
+syms_fil_nodups <- syms_fil %>% distinct(V1, .keep_all = TRUE)
+
+b <- names %>%
+  left_join(
+    unip_fil_nodups %>% # join with the second file (only the first and third column)
+      select(V1, V2, V11, V13), 
+    by='V1') %>%     
+  left_join(
+    tmbl_fil_nodups %>% 
+      select(V1, V2, V11, V13), 
+    by='V1') %>%
+  left_join(
+    ncbi_fil_nodups %>% 
+      select(V1, V2, V11, V13), 
+    by='V1')  %>%
+  left_join(
+    syms_fil_nodups %>% 
+      select(V1, V2, V11, V13), 
+    by='V1')  
+
+colnames(b)<-c("Protein_ID","Swiss-Prot_Hit","SP_E-value","Swiss-Prot_Description","Trembl_Hit", "TB_E-value", "Trembl_Description", "NCBI_hit", "nr_E-value","NCBI_Description", "Symbio_DB_hit", "Symbio_DB_E-value","Symbio_DB_Description")
+head(b)
+
+write.csv(b,"20210228_sfitti_genome_annotation.csv")
+
+```
