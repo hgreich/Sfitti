@@ -1,0 +1,85 @@
+---
+title: "snazzy_pcadapt_pca_12312019"
+author: "Hannah Reich"
+date: "12/31/2019"
+output: html_document
+---
+
+```{r warning=FALSE, message=FALSE}
+# dec 31 2019. making PCAdapt PCA presentation resady
+
+# load the packages
+library(reshape2)
+library(pcadapt)
+library(cowplot)
+library(ggplot2)
+library(ggpubr)
+library(vcfR)
+
+```
+
+```{r}
+setwd("~/Desktop/PhD/Symbiodinium fitti/SNP_under_selection/v_contam_rm_08082019/")
+
+# add in pop (this has hostXloc so eventually you can split them up)
+poptab <- read.table("~/Desktop/PhD/Symbiodinium fitti/contam_rm_080819/poptab_noBP.txt", header = T)
+
+# import the vcf file
+path <- "~/Desktop/PhD/Symbiodinium fitti/contam_rm_080819/hq_nocontam_rename_aug19.vcf"
+vcf <- read.pcadapt(path, type = "vcf", type.out = "matrix", ploidy = 1)
+
+# run pcadapt, test up to 20 clusters/pops
+acp <- pcadapt(input = vcf, K = 5)
+
+# Screeplot displays in decreasing order the percentage of variance explained by each PC
+plot(acp, option = "screeplot",  K = 5)
+
+#displays the PCA results colored by collection regions
+pca <- plot(acp, option = "scores", gg.col=transp(cols, 1.0)) #+
+ # geom_point(aes(color=poptab$host))
+
+summary(acp)
+# spit out % variance
+acp$singular.values
+
+# wrangle into a new dataframe
+df1 <- data.frame(Species = poptab[,1], Loc = poptab[,2], ID = poptab[,3], pca = pca$data)
+all_pca <- as.data.frame(df1)
+
+cols <- c("C" = "#000000", "H" = "#999999", "P" = "#0072B2")
+# back up shapes: 0,1,2,3,8
+
+f <- ggplot(all_pca) + 
+  geom_point(aes(all_pca$pca.PC_i, all_pca$pca.PC_j,
+               color = all_pca$Species, 
+               fill = all_pca$Species,
+               shape = all_pca$Loc), 
+               size = 4, 
+               alpha = 0.85) +
+  theme_bw() +
+  theme(legend.position = "right",
+        axis.title = element_text(face = "bold", size = 14),
+        plot.title = element_text(face = "bold"),
+        legend.title = element_text(face = "bold"),
+        panel.grid = element_blank(),
+        axis.text.x = element_blank(),
+  axis.text.y = element_blank()) +
+    scale_fill_manual(values = cols, 
+                     breaks = c("C", "H", "P"),
+                     labels = c("Acropora cervicornis", "Hybrid", "Acropora palmata"),
+                     name = "S. 'fitti' host") +
+  scale_color_manual(values = cols, 
+                     breaks = c("C", "H", "P"),
+                     labels = c("Acropora cervicornis", "Hybrid", "Acropora palmata"),
+                     name = "S. 'fitti' host") +
+    stat_ellipse(geom = "polygon", type = "t", alpha = 0.25, aes(all_pca$pca.PC_i, all_pca$pca.PC_j, fill= Species), show.legend = FALSE) + scale_fill_manual(values=cols) + # ellipses assumes multivariate distribution using default confidence level (0.95)
+  scale_shape_manual(values = c(25,16,17,15,23), breaks = c("BA", "BE", "CU", "FL", "VI"), labels = c("Bahamas", "Belize", "Curacao", "Florida", "USVI"), name = "Location") +
+  labs(title = "58,538 'genotyping' S. fitti SNPs", x="PC1 (16.0% variance)", y="PC2 (13.6% variance)")
+f
+
+save_plot("~/Desktop/PhD/chapters/chapter 3 - fitti/Figx_pca.pdf", f, base_aspect_ratio = 1.6)
+save_plot("pca_adapt.pdf", f, base_aspect_ratio = 1.6)
+
+
+```
+
