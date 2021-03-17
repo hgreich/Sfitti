@@ -1,0 +1,171 @@
+---
+title: "ManhattanPlot_Bayescan_PCAdapt_2020update"
+author: "Hannah Reich"
+date: "12/12/2019"
+output: html_document
+---
+
+```{r warning=FALSE, message=FALSE}
+# dec 12 2019
+# attempting to make a better manhattan plot that combines results from bayescan and pcadapt
+# script modified from "Garcia_AcervPopGenReport" (From Dr. Sheila Kitchen)
+
+# load a zillion packages
+library(reshape2)
+library(pcadapt)
+library(qvalue)
+library(dplyr)
+library(tidyverse)
+library(boa)
+library(vcfR)
+library(gghighlight)
+library(qqman)
+library(cowplot)
+```
+
+
+```{r}
+setwd("~/Desktop/PhD/Symbiodinium fitti/SNP_under_selection/v_contam_rm_08082019/")
+
+# add in pop (this has hostXloc so eventually you can split them up)
+poptab <- read.table("~/Desktop/PhD/Symbiodinium fitti/contam_rm_080819/poptab_noBP.txt", header = T)
+
+# import the vcf file
+path <- "~/Desktop/PhD/Symbiodinium fitti/contam_rm_080819/hq_nocontam_rename_aug19.vcf"
+vcf <- read.pcadapt(path, type = "vcf", type.out = "matrix", ploidy = 1)
+
+vcfr <- read.vcfR("~/Desktop/PhD/Symbiodinium fitti/contam_rm_080819/hq_nocontam_rename_aug19.vcf")
+
+#pull out chrom and position from VCF file
+t <- getCHROM(vcfr)
+u <- getPOS(vcfr)
+r<- paste(t,u,sep="_") #loci names
+
+
+c <- read.table("PCADAPT_ALLvalues.txt", header=T)
+# read in the bayescan results
+b <- read.table("bayescan_outliers_clean.txt", header=T)
+
+outliers<- c  %>%
+  mutate(PCA_outlier = ifelse(PCA.q.val < 0.05, "TRUE", "FALSE")) %>%
+ # mutate(PCA_pc1 = ifelse(out2$ID %in% snp_pc1$SNP, snp_pc1$PC, "FALSE")) %>%
+  left_join(b %>% select("BAYES_qval","BAYES_fst", "ID"), by=c("ID")) %>%
+  mutate(BAYES_outlier = ifelse(ID %in% b$ID, "TRUE", "FALSE")) 
+#separate(LocusName, into = c("chrom", "pos"), sep="_(?=[^_]+$)")
+
+
+# log -10 them
+outliers$PCA.q.val_LOG <- (log(outliers$PCA.q.val, base=10))*-1
+outliers$BAYES_qval_LOG <- (log(outliers$BAYES_qval, base=10))*-1
+
+bayes <- outliers %>%
+  group_by(BAYES_outlier) %>% 
+  filter(BAYES_outlier == "TRUE") %>%
+  ungroup()
+
+pca <- outliers %>%
+  group_by(PCA_outlier) %>% 
+  filter(PCA_outlier == "TRUE") %>%
+  ungroup()
+
+# add a fake chromosome column
+outliers$CHR <- c("1")
+outliers$CHR <- as.numeric(outliers$CHR)
+
+bayes <- outliers %>%
+  group_by(BAYES_outlier) %>% 
+  filter(BAYES_outlier == "TRUE") %>%
+  ungroup()
+bayes_h <- bayes$ID
+
+pca <- outliers %>%
+  group_by(PCA_outlier) %>% 
+  filter(PCA_outlier == "TRUE") %>%
+  ungroup()
+
+pca_h <- pca$ID
+
+manhattan(subset(outliers, CHR == 1), bp = "ID", snp="ID", p="PCA.p.val", ylim=c(0,80), suggestiveline = FALSE, genomewideline = TRUE, highlight = c(bayes_h))  #Where to draw a "genome-wide sigificant" line. Default -log10(5e-8). 
+
+# ggplot version https://www.r-graph-gallery.com/101_Manhattan_plot.html, https://cran.r-project.org/web/packages/qqman/vignettes/qqman.html
+# do this eventually https://github.com/sahirbhatnagar/manhattanly
+
+# remove inifinite values from Bayes Qvalue, editing figure caption to reflect this
+outliers[,5][outliers[,5] == 0] <- NA
+
+
+qv2 <- ggplot(outliers, aes(x=ID, y=-log10(PCA.q.val))) +
+  geom_point(subset(outliers, c(PCA.q.val_LOG <= 2.54)),mapping=aes(color = "#999999"), alpha=0.8, size=2) +
+  geom_point(data=subset(outliers, c(PCA_outlier=="TRUE" & PCA.q.val_LOG >= 2.54)), mapping=aes(color = "blue"), size = 0.9, alpha = 0.4) +
+  geom_point(data=subset(outliers, c(BAYES_outlier=="TRUE" & BAYES_qval_LOG >= 2.54)), aes(x=ID, y=-log10(BAYES_qval),color="red"), size=0.9, alpha = 0.4) +
+  #  geom_point(data=subset(outliers, BAYES_outlier=="TRUE" & PCA_outlier=="TRUE"), mapping=aes(color="#D55E00"), size=0.8) +
+  theme_bw() +
+  geom_hline(yintercept = 2.54,linetype = "dashed", lwd=0.6)+
+  geom_hline(yintercept = 6.01,lwd=0.6)+
+  labs(x="SNP ID #", y="-log10(q-value)") +
+  theme(legend.position = "bottom",
+        axis.text = element_text(size=12),
+        axis.title = element_text(size=14, face = "bold"),
+        legend.text = element_text(size=10),
+        legend.title = element_text(size=12, face = "bold")) +
+  scale_colour_manual(values = c("#999999","blue", "red"),
+                      labels = c("Not Significant","PCAdapt", "BayeScan"), name = c("Outlier Type")) 
+qv2
+
+qv1 <- ggplot(outliers, aes(x=ID, y=-log10(PCA.q.val))) +
+  geom_point(subset(outliers, c(PCA_outlier=="FALSE")),mapping=aes(color = "#999999"), alpha=0.8, size=2) +
+  geom_point(data=subset(outliers, c(PCA_outlier=="TRUE")), mapping=aes(color = "blue"), size = 0.9, alpha = 0.4) +
+  geom_point(data=subset(outliers, c(BAYES_outlier=="TRUE")), aes(x=ID, y=-log10(BAYES_qval),color="red"), size=0.9, alpha = 0.4) +
+  #  geom_point(data=subset(outliers, BAYES_outlier=="TRUE" & PCA_outlier=="TRUE"), mapping=aes(color="#D55E00"), size=0.8) +
+  theme_bw() +
+  geom_hline(yintercept = 2.54,linetype = "dashed", lwd=0.6)+
+  geom_hline(yintercept = 6.01,lwd=0.6)+
+  labs(x="SNP ID #", y="-log10(q-value)") +
+  theme(legend.position = "bottom",
+        axis.text = element_text(size=12),
+        axis.title = element_text(size=14, face = "bold"),
+        legend.text = element_text(size=10),
+        legend.title = element_text(size=12, face = "bold")) +
+  scale_colour_manual(values = c("#999999","blue", "red"),
+                      labels = c("Not Significant","PCAdapt", "BayeScan"), name = c("Outlier Type")) 
+qv1
+
+save_plot("~/Desktop/PhD/chapters/chapter 3 - fitti/figs_06122020/facelifted_figs/Fig_5_manhattanplot_total.pdf", qv1, base_aspect_ratio = 1.6)
+
+qv <- ggplot(outliers, aes(x=ID, y=-log10(PCA.q.val))) +
+  geom_point(alpha=0.8, color = "#999999", size=2) +
+  geom_point(data=subset(outliers, PCA_outlier=="TRUE"), mapping=aes(color = "blue"), size = 0.9, alpha = 0.4) +
+    geom_point(data=subset(outliers, BAYES_outlier=="TRUE"), mapping=aes(color="red"), size=0.9, alpha = 0.4) +
+  #  geom_point(data=subset(outliers, BAYES_outlier=="TRUE" & PCA_outlier=="TRUE"), mapping=aes(color="#D55E00"), size=0.8) +
+  theme_bw() +
+  labs(x="SNP ID #", y="-log10(q-value)") +
+  theme(legend.position = "bottom",
+        axis.text = element_text(size=12),
+        axis.title = element_text(size=14, face = "bold"),
+        legend.text = element_text(size=10),
+        legend.title = element_text(size=12, face = "bold")) +
+  scale_colour_manual(values = c("blue", "red"),
+                      labels = c("PCAdapt", "BayeScan"), name = c("Outlier Type")) 
+qv
+
+qv_zoom <- qv +
+  ylim(0,2) +
+  theme(legend.position = "none",
+        axis.title=element_blank(),
+        axis.text.x=element_blank(),
+        axis.ticks.x=element_blank(),
+        plot.background = element_blank()) 
+qv_zoom
+
+# put the zoomed in part in the top right
+total <- ggdraw() +
+  draw_plot(qv) +
+  draw_plot(qv_zoom, x=.75, y=.77, width = .25, height = .23)
+total
+
+#ggsave("manhattanplot_total.png", total)
+#ggsave("~/Desktop/PhD/chapters/chapter 3 - fitti/figs_06122020/facelifted_figs/Fig_5_manhattanplot_total.pdf", total, height = 5, width = 8, units = "in")
+
+
+```
+
