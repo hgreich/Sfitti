@@ -20,3 +20,5 @@ scripts to generate figures 2, 4, 5, S1, S2, S4, S5, S6
 - S. fitti VCFs (58k high quality snps, 6k no missing snps, 15k gene region snps, 5k sel outlier snps)  
 - S. fitti genome annotation file, gene bed file, gff3 file 
 - S. fitti psbA phylogeny 
+
+Draft Sfitti genome assemblies can be found on dryad: https://doi.org/10.5061/dryad.xgxd254g8 
